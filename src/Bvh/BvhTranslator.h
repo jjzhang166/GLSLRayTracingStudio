@@ -21,8 +21,8 @@ THE SOFTWARE.
 ********************************************************************/
 
 /* 
-	Code is not the original code from RadeonRays. It is modfied slightly for this project 
-	Please refer to https://github.com/GPUOpen-LibrariesAndSDKs/RadeonRays_SDK for the original code
+    Code is not the original code from RadeonRays. It is modfied slightly for this project 
+    Please refer to https://github.com/GPUOpen-LibrariesAndSDKs/RadeonRays_SDK for the original code
 */
 
 #pragma once
@@ -39,38 +39,38 @@ class BvhTranslator
 {
 public:
 
-	// Constructor
-	BvhTranslator() = default;
+    // Constructor
+    BvhTranslator() = default;
 
-	struct Node
-	{
-		int leftIndex;
-		int rightIndex;
-		int leaf;
-	};
+    struct Node
+    {
+        int leftIndex;
+        int rightIndex;
+        int leaf;
+    };
 
-	void ProcessBLAS();
-	void ProcessTLAS();
-	void UpdateTLAS(const Bvh* topLevelBvh, const std::vector<MeshInstance>& instances);
-	void Process(const Bvh* topLevelBvh, const std::vector<Mesh*>& meshes, const std::vector<MeshInstance>& instances);
-	
+    void ProcessBLAS();
+    void ProcessTLAS();
+    void UpdateTLAS(const Bvh* topLevelBvh, const std::vector<MeshInstance>& instances);
+    void Process(const Bvh* topLevelBvh, const std::vector<Mesh*>& meshes, const std::vector<MeshInstance>& instances);
+    
 private:
-	int ProcessBLASNodes(const Bvh::Node* root);
-	int ProcessTLASNodes(const Bvh::Node* root);
+    int ProcessBLASNodes(const Bvh::Node* root);
+    int ProcessTLASNodes(const Bvh::Node* root);
 
 public:
-	std::vector<Vector3> bboxmin;
-	std::vector<Vector3> bboxmax;
-	std::vector<Node> nodes;
-	int nodeTexWidth;
-	int topLevelIndexPackedXY = 0;
-	int topLevelIndex = 0;
+    std::vector<Vector3> bboxmin;
+    std::vector<Vector3> bboxmax;
+    std::vector<Node> nodes;
+    int nodeTexWidth;
+    int topLevelIndexPackedXY = 0;
+    int topLevelIndex = 0;
 
 private:
-	int curNode = 0;
-	int curTriIndex = 0;
-	const Bvh* TLBvh;
-	std::vector<int> bvhRootStartIndices;
-	std::vector<MeshInstance> meshInstances;
-	std::vector<Mesh*> meshes;
+    int curNode = 0;
+    int curTriIndex = 0;
+    const Bvh* TLBvh;
+    std::vector<int> bvhRootStartIndices;
+    std::vector<MeshInstance> meshInstances;
+    std::vector<Mesh*> meshes;
 };
