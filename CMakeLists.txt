@@ -9,6 +9,7 @@ set(CMAKE_CXX_STANDARD 11)
 
 add_definitions(-DNOMINMAX=1)
 add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+add_definitions(-DPLATFORM_WINDOWS=1)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 	add_compile_definitions(DEBUG)
@@ -18,13 +19,7 @@ if (MSVC)
 	add_link_options("/DEBUG")
 endif()
 
-set(ALL_LIBS
-	${OPENGL_LIBRARY}
-	glfw
-	glad
-	imgui
-	imguizmo
-)
+find_package(OpenGL REQUIRED)
 
 include_directories(
 	src/
@@ -34,13 +29,20 @@ include_directories(
 	external/imguizmo/
 )
 
-find_package(OpenGL REQUIRED)
-
 add_subdirectory(src)
 add_subdirectory(external/glfw)
 add_subdirectory(external/glad)
 add_subdirectory(external/imgui)
 add_subdirectory(external/imguizmo)
+
+set(ALL_LIBS
+	${OPENGL_LIBRARY}
+	glfw
+	glad
+	imgui
+	imguizmo
+	engine
+)
 
 # assets
 file(GLOB files "${CMAKE_CURRENT_SOURCE_DIR}/assets/*.*" "${CMAKE_CURRENT_SOURCE_DIR}/assets/*/*.*")
