@@ -4,11 +4,13 @@
 
 struct WindowsMisc
 {
-	static void RequestMinimize();
+    static void RequestMinimize();
     
-	static bool IsThisApplicationForeground();
+    static bool IsThisApplicationForeground();
 
-	static void PreventScreenSaver();
+    static void PreventScreenSaver();
 
-	static void GetDesktopResolution(int32& outWidth, int32& outHeight);
+    static void GetDesktopResolution(int32& outWidth, int32& outHeight);
+
+    static float GetDPI();
 };

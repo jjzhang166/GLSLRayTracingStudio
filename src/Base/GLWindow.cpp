@@ -3,11 +3,13 @@
 #include "Base/GLWindow.h"
 #include "Base/SceneView.h"
 
+#include "Math/Math.h"
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <stdlib.h>
 
-static void OnGLFWErrorCallback(int error, const char* description)
+static void OnGLFWErrorCallback(int32 error, const char* description)
 {
     LOGE("Glfw Error %d: %s\n", error, description);
 }
@@ -71,6 +73,9 @@ bool GLWindow::Init()
     // get frame size
     glfwGetFramebufferSize(m_Window, &m_FrameWidth, &m_FrameHeight);
 
+    // center window
+    SetWindowCenter();
+
     return true;
 }
 
@@ -114,4 +119,69 @@ void GLWindow::Render()
 void GLWindow::Present()
 {
     glfwSwapBuffers(m_Window);
+}
+
+void GLWindow::SetWindowCenter()
+{
+    int32 sx = 0;
+    int32 sy = 0;
+    int32 px = 0;
+    int32 py = 0;
+    int32 mx = 0;
+    int32 my = 0;
+    int32 monitorCount = 0;
+    int32 bestArea = 0;
+    int32 finalX = 0;
+    int32 finalY = 0;
+
+    glfwGetWindowSize(m_Window, &sx, &sy);
+    glfwGetWindowPos(m_Window, &px, &py);
+
+    // Iterate throug all monitors
+    GLFWmonitor** monitor = glfwGetMonitors(&monitorCount);
+    if (!monitor)
+    {
+        return;
+    }
+
+    for (int32 j = 0; j < monitorCount; ++j)
+    {
+        glfwGetMonitorPos(monitor[j], &mx, &my);
+
+        const GLFWvidmode* mode = glfwGetVideoMode(monitor[j]);
+        if (!mode)
+        {
+            continue;
+        }
+
+        int32 minX = MMath::Max(mx, px);
+        int32 minY = MMath::Max(my, py);
+        int32 maxX = MMath::Min(mx + mode->width,  px + sx);
+        int32 maxY = MMath::Min(my + mode->height, py + sy);
+        int32 area = MMath::Max(maxX - minX, 0) * MMath::Max(maxY - minY, 0);
+
+        if (area > bestArea)
+        {
+            finalX = mx + (mode->width  - sx) / 2;
+            finalY = my + (mode->height - sy) / 2;
+            bestArea = area;
+        }
+    }
+
+    if (bestArea)
+    {
+        glfwSetWindowPos(m_Window, finalX, finalY);
+    }
+    else
+    {
+        GLFWmonitor* primary = glfwGetPrimaryMonitor();
+        if (primary)
+        {
+            const GLFWvidmode* desktop = glfwGetVideoMode(primary);
+            if (desktop)
+            {
+                glfwSetWindowPos(m_Window , (desktop->width - sx) / 2 , (desktop->height - sy) / 2);
+            }
+        }
+    }
 }

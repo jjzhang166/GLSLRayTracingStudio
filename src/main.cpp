@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <memory>
 
-int main(int, char**)
+int32 main(int32, char**)
 {
     LOGD("Hello GLSLRayTracingStudio");
 
@@ -17,7 +17,7 @@ int main(int, char**)
     WindowsMisc::GetDesktopResolution(deskSizeW, deskSizeH);
     LOGI("Resolution:%dx%d", deskSizeW, deskSizeH);
 
-    auto window = std::make_shared<GLWindow>(1280, 720, "GLSLRayTracingStudio", true);
+    auto window = std::make_shared<GLWindow>(int32(deskSizeW * 0.8f), int32(deskSizeH * 0.8f), "GLSLRayTracingStudio", true);
     if (!window->Init())
     {
         exit(1);
