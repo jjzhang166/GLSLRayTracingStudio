@@ -16,6 +16,24 @@ set(COMMON_SRCS
 
 )
 
+set(MATH_HDRS
+	Math/Axis.h
+	Math/GenericPlatformMath.h
+	Math/Math.h
+	Math/Matrix4x4.h
+	Math/Plane.h
+	Math/PlatformMath.h
+	Math/Quat.h
+	Math/Vector2.h
+	Math/Vector3.h
+	Math/Vector4.h
+    Math/WindowsPlatformMath.h
+)
+set(MATH_SRCS
+	Math/GenericPlatformMath.cpp
+	Math/Math.cpp
+)
+
 set(UI_HDRS
     UI/UISceneView.h
 )
@@ -42,6 +60,9 @@ add_library(engine STATIC
 
     ${MISC_HDRS}
     ${MISC_SRCS}
+
+    ${MATH_HDRS}
+    ${MATH_SRCS}
 )
 
 source_group(src\\Base FILES ${BASE_HDRS} ${BASE_SRCS})
