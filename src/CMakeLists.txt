@@ -1,4 +1,4 @@
-set(BASE_HDRS
+﻿set(BASE_HDRS
     Base/SceneView.h
     Base/GLWindow.h
     Base/Mesh.h
@@ -19,22 +19,22 @@ set(COMMON_SRCS
 )
 
 set(MATH_HDRS
-	Math/Axis.h
-	Math/GenericPlatformMath.h
-	Math/Math.h
-	Math/Matrix4x4.h
-	Math/Plane.h
-	Math/PlatformMath.h
-	Math/Quat.h
-	Math/Vector2.h
-	Math/Vector3.h
-	Math/Vector4.h
+    Math/Axis.h
+    Math/GenericPlatformMath.h
+    Math/Math.h
+    Math/Matrix4x4.h
+    Math/Plane.h
+    Math/PlatformMath.h
+    Math/Quat.h
+    Math/Vector2.h
+    Math/Vector3.h
+    Math/Vector4.h
     Math/WindowsPlatformMath.h
     Math/Bounds3D.h
 )
 set(MATH_SRCS
-	Math/GenericPlatformMath.cpp
-	Math/Math.cpp
+    Math/GenericPlatformMath.cpp
+    Math/Math.cpp
 )
 
 set(UI_HDRS

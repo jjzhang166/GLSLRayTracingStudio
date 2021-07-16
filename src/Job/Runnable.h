@@ -8,37 +8,37 @@ class Runnable
 {
 public:
 
-	Runnable()
-		: m_RunnableThread(nullptr)
-	{
+    Runnable()
+        : m_RunnableThread(nullptr)
+    {
 
-	}
+    }
 
-	virtual ~Runnable()
-	{
+    virtual ~Runnable()
+    {
 
-	}
+    }
 
-	virtual bool Init()
-	{
-		return true;
-	}
+    virtual bool Init()
+    {
+        return true;
+    }
 
-	virtual int32 Run() = 0;
+    virtual int32 Run() = 0;
 
-	virtual void Stop()
-	{
+    virtual void Stop()
+    {
 
-	}
+    }
 
-	virtual void Exit()
-	{
+    virtual void Exit()
+    {
 
-	}
+    }
 
 protected:
 
-	friend class RunnableThread;
+    friend class RunnableThread;
 
-	RunnableThread* m_RunnableThread;
+    RunnableThread* m_RunnableThread;
 };

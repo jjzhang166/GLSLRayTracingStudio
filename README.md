@@ -1,4 +1,4 @@
-# GLSLRayTracingStudio
+﻿# GLSLRayTracingStudio
 
 使用OpenGL实现的光追Studio。
 
