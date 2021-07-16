@@ -11,13 +11,13 @@
 #endif
 
 typedef unsigned char 		uint8;
-typedef unsigned short int32	uint16;
-typedef unsigned int32		uint32;
+typedef unsigned short int	uint16;
+typedef unsigned int		uint32;
 typedef unsigned long long	uint64;
 
 typedef	signed char			int8;
-typedef signed short int32	int16;
-typedef signed int32	 		int32;
+typedef signed short int	int16;
+typedef signed int	 		int32;
 typedef signed long long	int64;
 
 typedef char				ANSICHAR;
