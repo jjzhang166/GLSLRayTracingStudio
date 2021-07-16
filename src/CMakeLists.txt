@@ -45,7 +45,24 @@ set(MISC_HDRS
     Misc/WindowsMisc.h
 )
 set(MISC_SRCS
-    Misc/WindowsMisc.cpp    
+    Misc/WindowsMisc.cpp
+)
+
+set(JOB_HDRS
+    Job/Runnable.h
+    Job/RunnableThread.h
+    Job/TaskThread.h
+    Job/TaskThreadPool.h
+    Job/ThreadEvent.h
+    Job/ThreadManager.h
+    Job/ThreadTask.h
+)
+set(JOB_SRCS
+    Job/RunnableThread.cpp
+    Job/TaskThread.cpp
+    Job/TaskThreadPool.cpp
+    Job/ThreadEvent.cpp
+    Job/ThreadManager.cpp
 )
 
 add_library(engine STATIC
@@ -63,6 +80,9 @@ add_library(engine STATIC
 
     ${MATH_HDRS}
     ${MATH_SRCS}
+
+    ${JOB_HDRS}
+    ${JOB_SRCS}
 )
 
 source_group(src\\Base FILES ${BASE_HDRS} ${BASE_SRCS})
@@ -70,3 +90,4 @@ source_group(src\\Common FILES ${COMMON_HDRS} ${COMMON_SRCS})
 source_group(src\\UI FILES ${UI_HDRS} ${UI_SRCS})
 source_group(src\\Misc FILES ${MISC_HDRS} ${MISC_SRCS})
 source_group(src\\Math FILES ${MATH_SRCS} ${MATH_HDRS})
+source_group(src\\Job FILES ${JOB_HDRS} ${JOB_SRCS})
