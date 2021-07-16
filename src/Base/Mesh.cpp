@@ -4,10 +4,10 @@
 
 void Mesh::BuildBVH()
 {
-    const int numTris = (int32)verticesUVX.size() / 3;
+    const int32 numTris = (int32)verticesUVX.size() / 3;
     std::vector<Bounds3D> bounds(numTris);
 
-    for (int i = 0; i < numTris; ++i)
+    for (int32 i = 0; i < numTris; ++i)
     {
         const Vector3 v1 = Vector3(verticesUVX[i * 3 + 0]);
         const Vector3 v2 = Vector3(verticesUVX[i * 3 + 1]);

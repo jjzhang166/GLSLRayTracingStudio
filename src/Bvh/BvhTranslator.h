@@ -44,9 +44,9 @@ public:
 
     struct Node
     {
-        int leftIndex;
-        int rightIndex;
-        int leaf;
+        int32 leftIndex;
+        int32 rightIndex;
+        int32 leaf;
     };
 
     void ProcessBLAS();
@@ -55,22 +55,22 @@ public:
     void Process(const Bvh* topLevelBvh, const std::vector<Mesh*>& meshes, const std::vector<MeshInstance>& instances);
     
 private:
-    int ProcessBLASNodes(const Bvh::Node* root);
-    int ProcessTLASNodes(const Bvh::Node* root);
+    int32 ProcessBLASNodes(const Bvh::Node* root);
+    int32 ProcessTLASNodes(const Bvh::Node* root);
 
 public:
     std::vector<Vector3> bboxmin;
     std::vector<Vector3> bboxmax;
     std::vector<Node> nodes;
-    int nodeTexWidth;
-    int topLevelIndexPackedXY = 0;
-    int topLevelIndex = 0;
+    int32 nodeTexWidth;
+    int32 topLevelIndexPackedXY = 0;
+    int32 topLevelIndex = 0;
 
 private:
-    int curNode = 0;
-    int curTriIndex = 0;
+    int32 curNode = 0;
+    int32 curTriIndex = 0;
     const Bvh* TLBvh;
-    std::vector<int> bvhRootStartIndices;
+    std::vector<int32> bvhRootStartIndices;
     std::vector<MeshInstance> meshInstances;
     std::vector<Mesh*> meshes;
 };

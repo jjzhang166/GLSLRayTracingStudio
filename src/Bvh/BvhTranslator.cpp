@@ -32,7 +32,7 @@ THE SOFTWARE.
 #include <stack>
 #include <iostream>
 
-int BvhTranslator::ProcessBLASNodes(const Bvh::Node* node)
+int32 BvhTranslator::ProcessBLASNodes(const Bvh::Node* node)
 {
     Bounds3D bbox = node->bounds;
 
@@ -40,7 +40,7 @@ int BvhTranslator::ProcessBLASNodes(const Bvh::Node* node)
     bboxmax[curNode] = bbox.max;
     nodes[curNode].leaf = 0;
 
-    int index = curNode;
+    int32 index = curNode;
 
     if (node->type == Bvh::NodeType::kLeaf)
     {
@@ -61,7 +61,7 @@ int BvhTranslator::ProcessBLASNodes(const Bvh::Node* node)
     return index;
 }
 
-int BvhTranslator::ProcessTLASNodes(const Bvh::Node* node)
+int32 BvhTranslator::ProcessTLASNodes(const Bvh::Node* node)
 {
     Bounds3D bbox = node->bounds;
 
@@ -69,13 +69,13 @@ int BvhTranslator::ProcessTLASNodes(const Bvh::Node* node)
     bboxmax[curNode] = bbox.max;
     nodes[curNode].leaf = 0;
 
-    int index = curNode;
+    int32 index = curNode;
 
     if (node->type == Bvh::NodeType::kLeaf)
     {
-        int instanceIndex = TLBvh->m_PackedIndices[node->startidx];
-        int meshIndex  = meshInstances[instanceIndex].meshID;
-        int materialID = meshInstances[instanceIndex].materialID;
+        int32 instanceIndex = TLBvh->m_PackedIndices[node->startidx];
+        int32 meshIndex  = meshInstances[instanceIndex].meshID;
+        int32 materialID = meshInstances[instanceIndex].materialID;
 
         nodes[curNode].leftIndex  = (bvhRootStartIndices[meshIndex] % nodeTexWidth) << 12 | (bvhRootStartIndices[meshIndex] / nodeTexWidth);
         nodes[curNode].rightIndex = materialID;
@@ -96,9 +96,9 @@ int BvhTranslator::ProcessTLASNodes(const Bvh::Node* node)
     
 void BvhTranslator::ProcessBLAS()
 {
-    int nodeCnt = 0;
+    int32 nodeCnt = 0;
 
-    for (int i = 0; i < meshes.size(); ++i)
+    for (int32 i = 0; i < meshes.size(); ++i)
     {
         nodeCnt += meshes[i]->bvh->m_Nodecnt;
     }
@@ -107,17 +107,17 @@ void BvhTranslator::ProcessBLAS()
 
     // reserve space for top level nodes
     nodeCnt += 2 * (int32)meshInstances.size();
-    nodeTexWidth = (int)(sqrt(nodeCnt) + 1);
+    nodeTexWidth = (int32)(sqrt(nodeCnt) + 1);
 
     // Resize to power of 2
     bboxmin.resize(nodeTexWidth * nodeTexWidth);
     bboxmax.resize(nodeTexWidth * nodeTexWidth);
     nodes.resize(nodeTexWidth * nodeTexWidth);
 
-    int bvhRootIndex = 0;
+    int32 bvhRootIndex = 0;
     curTriIndex = 0;
 
-    for (int i = 0; i < meshes.size(); i++)
+    for (int32 i = 0; i < meshes.size(); i++)
     {
         Mesh* mesh = meshes[i];
         curNode = bvhRootIndex;

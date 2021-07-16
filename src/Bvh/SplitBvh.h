@@ -28,7 +28,7 @@
 class SplitBvh : public Bvh
 {
 public:
-    SplitBvh(float traversalCost, int numBins, int maxSplitDepth,  float minOverlap, float extraRefsBudget)
+    SplitBvh(float traversalCost, int32 numBins, int32 maxSplitDepth,  float minOverlap, float extraRefsBudget)
         : Bvh(traversalCost, numBins, true)
         , m_MaxSplitDepth(maxSplitDepth)
         , m_MinOverlap(minOverlap)
@@ -49,7 +49,7 @@ protected:
         // Prim bounds
         Bounds3D bounds;
         Vector3 center;
-        int idx;
+        int32 idx;
     };
 
     using PrimRefArray = std::vector<PrimRef>;
@@ -61,14 +61,14 @@ protected:
     };
 
     // Build function
-    void BuildImpl(const Bounds3D* bounds, int numbounds) override;
+    void BuildImpl(const Bounds3D* bounds, int32 numbounds) override;
     void BuildNode(SplitRequest& req, PrimRefArray& primrefs);
         
     SahSplit FindObjectSahSplit(const SplitRequest& req, const PrimRefArray& refs) const;
     SahSplit FindSpatialSahSplit(const SplitRequest& req, const PrimRefArray& refs) const;
         
-    void SplitPrimRefs(const SahSplit& split, const SplitRequest& req, PrimRefArray& refs, int& extra_refs);
-    bool SplitPrimRef(const PrimRef& ref, int axis, float split, PrimRef& leftref, PrimRef& rightref) const;
+    void SplitPrimRefs(const SahSplit& split, const SplitRequest& req, PrimRefArray& refs, int32& extra_refs);
+    bool SplitPrimRef(const PrimRef& ref, int32 axis, float split, PrimRef& leftref, PrimRef& rightref) const;
 
 protected:
 
@@ -78,18 +78,18 @@ protected:
 
 private:
 
-    int m_MaxSplitDepth;
+    int32 m_MaxSplitDepth;
     float m_MinOverlap;
     float m_ExtraRefsBudget;
-    int m_NumNodesRequired;
-    int m_NumNodesForRegular;
+    int32 m_NumNodesRequired;
+    int32 m_NumNodesForRegular;
 
     // Node archive for memory management
     // As m_nodes fills up we archive it into m_node_archive
     // allocate new chunk and work there.
 
     // How many nodes have been archived so far
-    int m_NumNodesArchived;
+    int32 m_NumNodesArchived;
     // Container for archived chunks
     std::list<std::vector<Node>> m_NodeArchive;
 
