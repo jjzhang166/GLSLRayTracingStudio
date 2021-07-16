@@ -52,7 +52,7 @@ public:
             MMath::Abs(center.z - p.z) <= radius.z;
     }
 
-    int Maxdim() const
+    int32 Maxdim() const
     {
         Vector3 ext = Extents();
 
@@ -77,7 +77,7 @@ public:
         return 2.f * (ext.x * ext.y + ext.x * ext.z + ext.y * ext.z);
     }
 
-    const Vector3& operator [] (int i) const
+    const Vector3& operator [] (int32 i) const
     { 
         if (i == 0) {
             return min;

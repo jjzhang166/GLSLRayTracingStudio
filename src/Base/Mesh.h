@@ -40,7 +40,7 @@ public:
 class MeshInstance
 {
 public:
-    MeshInstance(int meshId, Matrix4x4 xform, int matId, const std::string& inName)
+    MeshInstance(int32 meshId, Matrix4x4 xform, int32 matId, const std::string& inName)
         : transform(xform)
         , materialID(matId)
         , meshID(meshId)
@@ -56,7 +56,7 @@ public:
 
 public:
     Matrix4x4	    transform;
-    int			    materialID;
-    int			    meshID;
+    int32			    materialID;
+    int32			    meshID;
     std::string     name;
 };

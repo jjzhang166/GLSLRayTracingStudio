@@ -27,16 +27,16 @@ THE SOFTWARE.
 #include "Bvh/Bvh.h"
 #include "Math/Vector3.h"
 
-static const int kMaxPrimitivesPerLeaf = 1;
+static const int32 kMaxPrimitivesPerLeaf = 1;
 
 static bool IsNaN(float v)
 {
     return v != v;
 }
 
-void Bvh::Build(const Bounds3D* bounds, int numbounds)
+void Bvh::Build(const Bounds3D* bounds, int32 numbounds)
 {
-    for (int i = 0; i < numbounds; ++i)
+    for (int32 i = 0; i < numbounds; ++i)
     {
         // Calc bbox
         m_Bounds.Expand(bounds[i]);
@@ -56,7 +56,7 @@ Bvh::Node* Bvh::AllocateNode()
     return &m_Nodes[m_Nodecnt++];
 }
 
-void Bvh::BuildNode(const SplitRequest& req, const Bounds3D* bounds, const Vector3* centroids, int* primindices)
+void Bvh::BuildNode(const SplitRequest& req, const Bounds3D* bounds, const Vector3* centroids, int32* primindices)
 {
     m_Height = std::max(m_Height, req.level);
 
@@ -68,7 +68,7 @@ void Bvh::BuildNode(const SplitRequest& req, const Bounds3D* bounds, const Vecto
     if (req.numprims < 2)
     {
         node->type = kLeaf;
-        node->startidx = static_cast<int>(m_PackedIndices.size());
+        node->startidx = static_cast<int32>(m_PackedIndices.size());
         node->numprims = req.numprims;
 
         for (auto i = 0; i < req.numprims; ++i)
@@ -79,7 +79,7 @@ void Bvh::BuildNode(const SplitRequest& req, const Bounds3D* bounds, const Vecto
     else
     {
         // Choose the maximum extent
-        int axis     = req.centroidBounds.Maxdim();
+        int32 axis     = req.centroidBounds.Maxdim();
         float border = req.centroidBounds.Center()[axis];
 
         if (m_Usesah)
@@ -94,7 +94,7 @@ void Bvh::BuildNode(const SplitRequest& req, const Bounds3D* bounds, const Vecto
                 if (req.numprims < ss.sah && req.numprims < kMaxPrimitivesPerLeaf)
                 {
                     node->type     = kLeaf;
-                    node->startidx = static_cast<int>(m_PackedIndices.size());
+                    node->startidx = static_cast<int32>(m_PackedIndices.size());
                     node->numprims = req.numprims;
 
                     for (auto i = 0; i < req.numprims; ++i)
@@ -120,7 +120,7 @@ void Bvh::BuildNode(const SplitRequest& req, const Bounds3D* bounds, const Vecto
         Bounds3D leftCentroidBounds;
         Bounds3D rightCentroidBounds;
 
-        int splitidx  = req.startidx;
+        int32 splitidx  = req.startidx;
         bool near2far = (req.numprims + req.startidx) & 0x1;
 
         if (req.centroidBounds.Extents()[axis] > 0.f)
@@ -210,13 +210,13 @@ void Bvh::BuildNode(const SplitRequest& req, const Bounds3D* bounds, const Vecto
         {
             splitidx = req.startidx + (req.numprims >> 1);
 
-            for (int i = req.startidx; i < splitidx; ++i)
+            for (int32 i = req.startidx; i < splitidx; ++i)
             {
                 leftbounds.Expand(bounds[primindices[i]]);
                 leftCentroidBounds.Expand(centroids[primindices[i]]);
             }
 
-            for (int i = splitidx; i < req.startidx + req.numprims; ++i)
+            for (int32 i = splitidx; i < req.startidx + req.numprims; ++i)
             {
                 rightbounds.Expand(bounds[primindices[i]]);
                 rightCentroidBounds.Expand(centroids[primindices[i]]);
@@ -241,13 +241,13 @@ void Bvh::BuildNode(const SplitRequest& req, const Bounds3D* bounds, const Vecto
     }
 }
 
-Bvh::SahSplit Bvh::FindSahSplit(const SplitRequest& req, const Bounds3D* bounds, const Vector3* centroids, int* primindices) const
+Bvh::SahSplit Bvh::FindSahSplit(const SplitRequest& req, const Bounds3D* bounds, const Vector3* centroids, int32* primindices) const
 {
     // SAH implementation
     // calc centroids histogram
-    // int const kNumBins = 128;
+    // int32 const kNumBins = 128;
     // moving split bin index
-    int splitidx = -1;
+    int32 splitidx = -1;
     // Set SAH to maximum float value as a start
     float sah = std::numeric_limits<float>::max();
 
@@ -269,7 +269,7 @@ Bvh::SahSplit Bvh::FindSahSplit(const SplitRequest& req, const Bounds3D* bounds,
     struct Bin
     {
         Bounds3D bounds;
-        int count;
+        int32 count;
     };
 
     // Keep bins for each dimension
@@ -284,7 +284,7 @@ Bvh::SahSplit Bvh::FindSahSplit(const SplitRequest& req, const Bounds3D* bounds,
     Vector3 rootmin = req.centroidBounds.min;
 
     // Evaluate all dimensions
-    for (int axis = 0; axis < 3; ++axis)
+    for (int32 axis = 0; axis < 3; ++axis)
     {
         float rootminc = rootmin[axis];
         // Range for histogram
@@ -298,17 +298,17 @@ Bvh::SahSplit Bvh::FindSahSplit(const SplitRequest& req, const Bounds3D* bounds,
         }
 
         // Initialize bins
-        for (int i = 0; i < m_NumBins; ++i)
+        for (int32 i = 0; i < m_NumBins; ++i)
         {
             bins[axis][i].count = 0;
             bins[axis][i].bounds = Bounds3D();
         }
 
         // Calc primitive refs histogram
-        for (int i = req.startidx; i < req.startidx + req.numprims; ++i)
+        for (int32 i = req.startidx; i < req.startidx + req.numprims; ++i)
         {
-            int idx = primindices[i];
-            int binidx = (int)std::min<float>(static_cast<float>(m_NumBins) * ((centroids[idx][axis] - rootminc) * invcentroidRNG), static_cast<float>(m_NumBins - 1));
+            int32 idx = primindices[i];
+            int32 binidx = (int32)std::min<float>(static_cast<float>(m_NumBins) * ((centroids[idx][axis] - rootminc) * invcentroidRNG), static_cast<float>(m_NumBins - 1));
 
             ++bins[axis][binidx].count;
             bins[axis][binidx].bounds.Expand(bounds[idx]);
@@ -318,20 +318,20 @@ Bvh::SahSplit Bvh::FindSahSplit(const SplitRequest& req, const Bounds3D* bounds,
 
         // Start with 1-bin right box
         Bounds3D rightbox;
-        for (int i = m_NumBins - 1; i > 0; --i)
+        for (int32 i = m_NumBins - 1; i > 0; --i)
         {
             rightbox.Expand(bins[axis][i].bounds);
             rightbounds[i - 1] = rightbox;
         }
 
         Bounds3D leftbox;
-        int leftcount = 0;
-        int rightcount = req.numprims;
+        int32 leftcount = 0;
+        int32 rightcount = req.numprims;
 
         // Start best SAH search
         // i is current split candidate (split between i and i + 1)
         float sahtmp = 0.f;
-        for (int i = 0; i < m_NumBins - 1; ++i)
+        for (int32 i = 0; i < m_NumBins - 1; ++i)
         {
             leftbox.Expand(bins[axis][i].bounds);
             leftcount  += bins[axis][i].count;
@@ -359,7 +359,7 @@ Bvh::SahSplit Bvh::FindSahSplit(const SplitRequest& req, const Bounds3D* bounds,
     return split;
 }
 
-void Bvh::BuildImpl(const Bounds3D* bounds, int numbounds)
+void Bvh::BuildImpl(const Bounds3D* bounds, int32 numbounds)
 {
     // Structure describing split request
     InitNodeAllocator(2 * numbounds - 1);

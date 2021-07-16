@@ -28,7 +28,7 @@ THE SOFTWARE.
 class Bvh
 {
 public:
-    Bvh(float traversalCost, int numBins = 64, bool usesah = false)
+    Bvh(float traversalCost, int32 numBins = 64, bool usesah = false)
         : m_Root(nullptr)
         , m_Usesah(usesah)
         , m_Height(0)
@@ -45,7 +45,7 @@ public:
 
     // Build function
     // bounds is an array of bounding boxes
-    void Build(const Bounds3D* bounds, int numbounds);
+    void Build(const Bounds3D* bounds, int32 numbounds);
 
     // World space bounding box
     const Bounds3D& Bounds() const
@@ -54,13 +54,13 @@ public:
     }
 
     // Get tree height
-    int GetHeight() const
+    int32 GetHeight() const
     {
         return m_Height;
     }
 
     // Get reordered prim indices Nodes are pointing to
-    virtual const int* GetIndices() const
+    virtual const int32* GetIndices() const
     {
         return &m_PackedIndices[0];
     }
@@ -90,7 +90,7 @@ protected:
         // Type of the node
         NodeType type;
         // Node index in a complete tree
-        int index;
+        int32 index;
 
         union
         {
@@ -104,8 +104,8 @@ protected:
             // For leaves: starting primitive index and number of primitives
             struct
             {
-                int startidx;
-                int numprims;
+                int32 startidx;
+                int32 numprims;
             };
         };
     };
@@ -113,9 +113,9 @@ protected:
     struct SplitRequest
     {
         // Starting index of a request
-        int startidx;
+        int32 startidx;
         // Number of primitives
-        int numprims;
+        int32 numprims;
         // Root node
         Node** ptr;
         // Bounding box
@@ -123,14 +123,14 @@ protected:
         // Centroid bounds
         Bounds3D centroidBounds;
         // Level
-        int level;
+        int32 level;
         // Node index
-        int index;
+        int32 index;
     };
 
     struct SahSplit
     {
-        int dim;
+        int32 dim;
         float split;
         float sah;
         float overlap;
@@ -139,25 +139,25 @@ protected:
 protected:
 
     // Build function
-    virtual void BuildImpl(const Bounds3D* bounds, int numbounds);
+    virtual void BuildImpl(const Bounds3D* bounds, int32 numbounds);
 
     // Node allocation
     virtual Node* AllocateNode();
 
     virtual void InitNodeAllocator(size_t maxnum);
 
-    void BuildNode(const SplitRequest& req, const Bounds3D* bounds, const Vector3* centroids, int* primindices);
+    void BuildNode(const SplitRequest& req, const Bounds3D* bounds, const Vector3* centroids, int32* primindices);
 
-    SahSplit FindSahSplit(const SplitRequest& req, const Bounds3D* bounds, const Vector3* centroids, int* primindices) const;
+    SahSplit FindSahSplit(const SplitRequest& req, const Bounds3D* bounds, const Vector3* centroids, int32* primindices) const;
 
     // Bvh nodes
     std::vector<Node> m_Nodes;
     // Identifiers of leaf primitives
-    std::vector<int> m_Indices;
+    std::vector<int32> m_Indices;
     // Node allocator counter, atomic for thread safety
-    int m_Nodecnt;
+    int32 m_Nodecnt;
     // Identifiers of leaf primitives
-    std::vector<int> m_PackedIndices;
+    std::vector<int32> m_PackedIndices;
     // Bounding box containing all primitives
     Bounds3D m_Bounds;
     // Root node
@@ -165,11 +165,11 @@ protected:
     // SAH flag
     bool m_Usesah;
     // Tree height
-    int m_Height;
+    int32 m_Height;
     // Node traversal cost
     float m_TraversalCost;
     // Number of spatial bins to use for SAH
-    int m_NumBins;
+    int32 m_NumBins;
 
 private:
 

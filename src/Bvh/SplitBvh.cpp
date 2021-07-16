@@ -4,7 +4,7 @@
 
 #include "Bvh/SplitBvh.h"
 
-void SplitBvh::BuildImpl(const Bounds3D* bounds, int numbounds)
+void SplitBvh::BuildImpl(const Bounds3D* bounds, int32 numbounds)
 {
     // Initialize prim refs structures
     PrimRefArray primrefs(numbounds);
@@ -22,7 +22,7 @@ void SplitBvh::BuildImpl(const Bounds3D* bounds, int numbounds)
     }
 
     m_NumNodesForRegular = (2 * numbounds - 1);
-    m_NumNodesRequired   = (int)(m_NumNodesForRegular * (1.f + m_ExtraRefsBudget));
+    m_NumNodesRequired   = (int32)(m_NumNodesForRegular * (1.f + m_ExtraRefsBudget));
 
     InitNodeAllocator(m_NumNodesRequired);
 
@@ -45,10 +45,10 @@ void SplitBvh::BuildNode(SplitRequest& req, PrimRefArray& primrefs)
     if (req.numprims < 2)
     {
         node->type     = kLeaf;
-        node->startidx = (int)m_PackedIndices.size();
+        node->startidx = (int32)m_PackedIndices.size();
         node->numprims = req.numprims;
 
-        for (int i = req.startidx; i < req.startidx + req.numprims; ++i)
+        for (int32 i = req.startidx; i < req.startidx + req.numprims; ++i)
         {
             m_PackedIndices.push_back(primrefs[i].idx);
         }
@@ -58,7 +58,7 @@ void SplitBvh::BuildNode(SplitRequest& req, PrimRefArray& primrefs)
         node->type = kInternal;
 
         // Choose the maximum extent
-        int axis = req.centroidBounds.Maxdim();
+        int32 axis = req.centroidBounds.Maxdim();
         float border = req.centroidBounds.Center()[axis];
 
         SahSplit os = FindObjectSahSplit(req, primrefs);
@@ -91,7 +91,7 @@ void SplitBvh::BuildNode(SplitRequest& req, PrimRefArray& primrefs)
             }
 
             // Split prim refs and add extra refs to request
-            int extra_refs = 0;
+            int32 extra_refs = 0;
             SplitPrimRefs(ss, req, primrefs, extra_refs);
             req.numprims += extra_refs;
             border = ss.split;
@@ -109,7 +109,7 @@ void SplitBvh::BuildNode(SplitRequest& req, PrimRefArray& primrefs)
         Bounds3D leftcentroidBounds;
         Bounds3D rightcentroidBounds;
 
-        int splitidx  = req.startidx;
+        int32 splitidx  = req.startidx;
         bool near2far = (req.numprims + req.startidx) & 0x1;
 
         bool(*cmpl)(float, float)  = [](float a, float b) -> bool { return a < b; };
@@ -163,13 +163,13 @@ void SplitBvh::BuildNode(SplitRequest& req, PrimRefArray& primrefs)
         {
             splitidx = req.startidx + (req.numprims >> 1);
 
-            for (int i = req.startidx; i < splitidx; ++i)
+            for (int32 i = req.startidx; i < splitidx; ++i)
             {
                 leftbounds.Expand(primrefs[i].bounds);
                 leftcentroidBounds.Expand(primrefs[i].center);
             }
 
-            for (int i = splitidx; i < req.startidx + req.numprims; ++i)
+            for (int32 i = splitidx; i < req.startidx + req.numprims; ++i)
             {
                 rightbounds.Expand(primrefs[i].bounds);
                 rightcentroidBounds.Expand(primrefs[i].center);
@@ -199,7 +199,7 @@ SplitBvh::SahSplit SplitBvh::FindObjectSahSplit(const SplitRequest& req, const P
     // SAH implementation
     // calc centroids histogram
     // moving split bin index
-    int splitidx = -1;
+    int32 splitidx = -1;
     // Set SAH to maximum float value as a start
     auto sah = std::numeric_limits<float>::max();
 
@@ -222,7 +222,7 @@ SplitBvh::SahSplit SplitBvh::FindObjectSahSplit(const SplitRequest& req, const P
     struct Bin
     {
         Bounds3D bounds;
-        int count;
+        int32 count;
     };
 
     // Keep bins for each dimension
@@ -237,7 +237,7 @@ SplitBvh::SahSplit SplitBvh::FindObjectSahSplit(const SplitRequest& req, const P
     auto rootmin = req.centroidBounds.min;
 
     // Evaluate all dimensions
-    for (int axis = 0; axis < 3; ++axis)
+    for (int32 axis = 0; axis < 3; ++axis)
     {
         float rootminc = rootmin[axis];
         // Range for histogram
@@ -250,17 +250,17 @@ SplitBvh::SahSplit SplitBvh::FindObjectSahSplit(const SplitRequest& req, const P
         }
 
         // Initialize bins
-        for (int i = 0; i < m_NumBins; ++i)
+        for (int32 i = 0; i < m_NumBins; ++i)
         {
             bins[axis][i].count = 0;
             bins[axis][i].bounds = Bounds3D();
         }
 
         // Calc primitive refs histogram
-        for (int i = req.startidx; i < req.startidx + req.numprims; ++i)
+        for (int32 i = req.startidx; i < req.startidx + req.numprims; ++i)
         {
             auto idx = i;
-            auto binidx = (int)std::min<float>(static_cast<float>(m_NumBins) * ((refs[idx].center[axis] - rootminc) * invcentroidRNG), static_cast<float>(m_NumBins - 1));
+            auto binidx = (int32)std::min<float>(static_cast<float>(m_NumBins) * ((refs[idx].center[axis] - rootminc) * invcentroidRNG), static_cast<float>(m_NumBins - 1));
 
             ++bins[axis][binidx].count;
             bins[axis][binidx].bounds.Expand(refs[idx].bounds);
@@ -270,20 +270,20 @@ SplitBvh::SahSplit SplitBvh::FindObjectSahSplit(const SplitRequest& req, const P
 
         // Start with 1-bin right box
         Bounds3D rightbox;
-        for (int i = m_NumBins - 1; i > 0; --i)
+        for (int32 i = m_NumBins - 1; i > 0; --i)
         {
             rightbox.Expand(bins[axis][i].bounds);
             rightbounds[i - 1] = rightbox;
         }
 
         Bounds3D leftbox ;
-        int leftcount = 0;
-        int rightcount = req.numprims;
+        int32 leftcount = 0;
+        int32 rightcount = req.numprims;
 
         // Start best SAH search
         // i is current split candidate (split between i and i + 1)
         float sahtmp = 0.f;
-        for (int i = 0; i < m_NumBins - 1; ++i)
+        for (int32 i = 0; i < m_NumBins - 1; ++i)
         {
             leftbox.Expand(bins[axis][i].bounds);
             leftcount += bins[axis][i].count;
@@ -319,7 +319,7 @@ SplitBvh::SahSplit SplitBvh::FindSpatialSahSplit(const SplitRequest& req, const 
 {
     // SAH implementation
     // calc centroids histogram
-    int const kNumBins = 128;
+    int32 const kNumBins = 128;
     // Set SAH to maximum float value as a start
     auto sah = std::numeric_limits<float>::max();
 
@@ -343,8 +343,8 @@ SplitBvh::SahSplit SplitBvh::FindSpatialSahSplit(const SplitRequest& req, const 
     struct Bin
     {
         Bounds3D bounds;
-        int enter;
-        int exit;
+        int32 enter;
+        int32 exit;
     };
 
     Bin bins[3][kNumBins];
@@ -355,9 +355,9 @@ SplitBvh::SahSplit SplitBvh::FindSpatialSahSplit(const SplitRequest& req, const 
     Vector3 invbinsize = Vector3(1.f / binsize.x, 1.f / binsize.y, 1.f / binsize.z);
 
     // Initialize bins
-    for (int axis = 0; axis < 3; ++axis)
+    for (int32 axis = 0; axis < 3; ++axis)
     {
-        for (int i = 0; i < kNumBins; ++i)
+        for (int32 i = 0; i < kNumBins; ++i)
         {
             bins[axis][i].bounds = Bounds3D();
             bins[axis][i].enter = 0;
@@ -366,7 +366,7 @@ SplitBvh::SahSplit SplitBvh::FindSpatialSahSplit(const SplitRequest& req, const 
     }
 
     // Iterate thru all primitive refs
-    for (int i = req.startidx; i < req.startidx + req.numprims; ++i)
+    for (int32 i = req.startidx; i < req.startidx + req.numprims; ++i)
     {
         PrimRef const& primref(refs[i]);
         // Determine starting bin for this primitive
@@ -375,7 +375,7 @@ SplitBvh::SahSplit SplitBvh::FindSpatialSahSplit(const SplitRequest& req, const 
         Vector3 lastbin  = Vector3::Clamp((primref.bounds.max - origin) * invbinsize, firstbin, Vector3(kNumBins - 1, kNumBins - 1, kNumBins - 1));
         
         // Iterate over axis
-        for (int axis = 0; axis < 3; ++axis)
+        for (int32 axis = 0; axis < 3; ++axis)
         {
             // Skip in case of a degenerate dimension
             if (extents[axis] == 0.f) {
@@ -385,7 +385,7 @@ SplitBvh::SahSplit SplitBvh::FindSpatialSahSplit(const SplitRequest& req, const 
             // Break the prim into bins
             auto tempref = primref;
 
-            for (int j = (int)firstbin[axis]; j < (int)lastbin[axis]; ++j)
+            for (int32 j = (int32)firstbin[axis]; j < (int32)lastbin[axis]; ++j)
             {
                 PrimRef leftref, rightref;
                 // Split primitive ref into left and right
@@ -400,10 +400,10 @@ SplitBvh::SahSplit SplitBvh::FindSpatialSahSplit(const SplitRequest& req, const 
             }
 
             // Add the last piece into the last bin
-            bins[axis][(int)lastbin[axis]].bounds.Expand(tempref.bounds);
+            bins[axis][(int32)lastbin[axis]].bounds.Expand(tempref.bounds);
             // Adjust enter & exit counters
-            bins[axis][(int)firstbin[axis]].enter++;
-            bins[axis][(int)lastbin[axis]].exit++;
+            bins[axis][(int32)firstbin[axis]].enter++;
+            bins[axis][(int32)lastbin[axis]].exit++;
         }
     }
 
@@ -412,7 +412,7 @@ SplitBvh::SahSplit SplitBvh::FindSpatialSahSplit(const SplitRequest& req, const 
     split.sah = std::numeric_limits<float>::max();
 
     // Iterate over axis
-    for (int axis = 0; axis < 3; ++axis)
+    for (int32 axis = 0; axis < 3; ++axis)
     {
         // Skip if the extent is degenerate in that direction
         if (extents[axis] == 0.f) {
@@ -421,18 +421,18 @@ SplitBvh::SahSplit SplitBvh::FindSpatialSahSplit(const SplitRequest& req, const 
             
         // Start with 1-bin right box
         Bounds3D rightbox = Bounds3D();
-        for (int i = kNumBins - 1; i > 0; --i)
+        for (int32 i = kNumBins - 1; i > 0; --i)
         {
             rightbox = Bounds3D::Union(rightbox, bins[axis][i].bounds);
             rightbounds[i - 1] = rightbox;
         }
 
         Bounds3D leftbox = Bounds3D();
-        int leftcount = 0;
-        int rightcount = req.numprims;
+        int32 leftcount = 0;
+        int32 rightcount = req.numprims;
 
         // Start moving border to the right
-        for (int i = 1; i < kNumBins; ++i)
+        for (int32 i = 1; i < kNumBins; ++i)
         {
             // New left box
             leftbox.Expand(bins[axis][i - 1].bounds);
@@ -459,7 +459,7 @@ SplitBvh::SahSplit SplitBvh::FindSpatialSahSplit(const SplitRequest& req, const 
     return split;
 }
 
-bool SplitBvh::SplitPrimRef(PrimRef const& ref, int axis, float split, PrimRef& leftref, PrimRef& rightref) const
+bool SplitBvh::SplitPrimRef(PrimRef const& ref, int32 axis, float split, PrimRef& leftref, PrimRef& rightref) const
 {
     // Start with left and right refs equal to original ref
     leftref.idx    = rightref.idx = ref.idx;
@@ -478,13 +478,13 @@ bool SplitBvh::SplitPrimRef(PrimRef const& ref, int axis, float split, PrimRef& 
     return false;
 }
 
-void SplitBvh::SplitPrimRefs(SahSplit const& split, SplitRequest const& req, PrimRefArray& refs, int& extra_refs)
+void SplitBvh::SplitPrimRefs(SahSplit const& split, SplitRequest const& req, PrimRefArray& refs, int32& extra_refs)
 {
     // We are going to append new primitives at the end of the array
-    int appendprims = req.numprims;
+    int32 appendprims = req.numprims;
 
     // Split refs if any of them require to be split
-    for (int i = req.startidx; i < req.startidx + req.numprims; ++i)
+    for (int32 i = req.startidx; i < req.startidx + req.numprims; ++i)
     {
         PrimRef leftref, rightref;
         if (SplitPrimRef(refs[i], split.dim, split.split, leftref, rightref))
