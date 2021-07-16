@@ -86,6 +86,10 @@ public:
 
 private:
 
+    void SetWindowCenter();
+
+private:
+
     typedef std::vector<std::shared_ptr<SceneView>> SceneViewArray;
 
     int32               m_Width;
