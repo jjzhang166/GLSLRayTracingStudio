@@ -115,6 +115,8 @@ public:
 
     FORCEINLINE static Vector3 Max(const Vector3& a, const Vector3& b);
 
+    FORCEINLINE static Vector3 Clamp(const Vector3& val, const Vector3& mmin, const Vector3& mmax);
+
     FORCEINLINE float Size() const;
 
     FORCEINLINE float SizeSquared() const;
@@ -287,6 +289,15 @@ FORCEINLINE Vector3 Vector3::Max(const Vector3& a, const Vector3& b)
     result.y = MMath::Max(a.y, b.y);
     result.z = MMath::Max(a.z, b.z);
     return result;
+}
+
+FORCEINLINE Vector3 Vector3::Clamp(const Vector3& val, const Vector3& mmin, const Vector3& mmax)
+{
+    return Vector3(
+        MMath::Clamp(val.x, mmin.x, mmax.x),
+        MMath::Clamp(val.y, mmin.y, mmax.y),
+        MMath::Clamp(val.z, mmin.z, mmax.z)
+    );
 }
 
 FORCEINLINE Vector3 Vector3::RadiansToDegrees(const Vector3& radVector)

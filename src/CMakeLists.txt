@@ -1,10 +1,12 @@
 set(BASE_HDRS
     Base/SceneView.h
     Base/GLWindow.h
+    Base/Mesh.h
 )
 set(BASE_SRCS
     Base/SceneView.cpp
     Base/GLWindow.cpp
+    Base/Mesh.cpp
 )
 
 set(COMMON_HDRS
@@ -28,6 +30,7 @@ set(MATH_HDRS
 	Math/Vector3.h
 	Math/Vector4.h
     Math/WindowsPlatformMath.h
+    Math/Bounds3D.h
 )
 set(MATH_SRCS
 	Math/GenericPlatformMath.cpp
@@ -46,6 +49,17 @@ set(MISC_HDRS
 )
 set(MISC_SRCS
     Misc/WindowsMisc.cpp
+)
+
+set(BVH_HDRS
+    Bvh/Bvh.h
+    Bvh/BvhTranslator.h
+    Bvh/SplitBvh.h
+)
+set(BVH_SRCS
+    Bvh/Bvh.cpp
+    Bvh/BvhTranslator.cpp
+    Bvh/SplitBvh.cpp
 )
 
 set(JOB_HDRS
@@ -83,6 +97,9 @@ add_library(engine STATIC
 
     ${JOB_HDRS}
     ${JOB_SRCS}
+
+    ${BVH_HDRS}
+    ${BVH_SRCS}
 )
 
 source_group(src\\Base FILES ${BASE_HDRS} ${BASE_SRCS})
@@ -91,3 +108,4 @@ source_group(src\\UI FILES ${UI_HDRS} ${UI_SRCS})
 source_group(src\\Misc FILES ${MISC_HDRS} ${MISC_SRCS})
 source_group(src\\Math FILES ${MATH_SRCS} ${MATH_HDRS})
 source_group(src\\Job FILES ${JOB_HDRS} ${JOB_SRCS})
+source_group(src\\Bvh FILES ${BVH_HDRS} ${BVH_SRCS})
