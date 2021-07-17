@@ -15,6 +15,8 @@ UISceneView::UISceneView(std::shared_ptr<GLWindow> window)
     , m_ImGuiIO(nullptr)
     , m_MenuBarMousePos(0.0f, 0.0f)
     , m_MenuBarDragging(false)
+
+    , m_ShowingAbout(false)
 {
 
 }
@@ -133,13 +135,41 @@ void UISceneView::DrawMenuBar()
             ImGui::EndMenu();
         }
 
-        // Tools items
-        if (ImGui::BeginMenu("Tools"))
+        // Help items
+        if (ImGui::BeginMenu("Help"))
         {
+            if (ImGui::MenuItem("About"))
+            {
+                m_ShowingAbout = true;
+            }
+
             ImGui::EndMenu();
         }
 
         ImGui::EndMainMenuBar();
+    }
+}
+
+void UISceneView::DrawAboutUI()
+{
+    if (m_ShowingAbout)
+    {
+        ImGuiWindowFlags window_flags = 0;
+        window_flags |= ImGuiWindowFlags_NoScrollbar;
+        window_flags |= ImGuiWindowFlags_NoResize;
+        window_flags |= ImGuiWindowFlags_NoCollapse;
+        window_flags |= ImGuiWindowFlags_NoMove;
+
+        ImGui::OpenPopup("About");
+        if (ImGui::BeginPopupModal("About", &m_ShowingAbout, window_flags))
+        {
+            ImGui::Text("GLSLRayTracingStudio %s", APP_VERSION);
+            ImGui::Separator();
+            ImGui::Text("By Boblchen contributors.");
+            ImGui::Text("GLSLRayTracingStudio is licensed under the MIT License, see LICENSE for more information.");
+            ImGui::Text("Github:https://github.com/BobLChen/GLSLRayTracingStudio");
+            ImGui::EndPopup();
+        }
     }
 }
 
@@ -151,7 +181,7 @@ void UISceneView::OnRender()
     ImGui::NewFrame();
 
     HandleMoving();
-
+    DrawAboutUI();
     DrawMenuBar();
 
     // Our state

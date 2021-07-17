@@ -31,7 +31,7 @@ public:
 private:
 
     void DrawMenuBar();
-
+    void DrawAboutUI();
     void HandleMoving();
 
 private:
@@ -40,4 +40,6 @@ private:
 
     Vector2     m_MenuBarMousePos;
     bool        m_MenuBarDragging;
+
+    bool        m_ShowingAbout;
 };

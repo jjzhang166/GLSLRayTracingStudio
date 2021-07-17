@@ -72,7 +72,7 @@ Vector2 WindowsMisc::GetMousePos()
 {
     POINT p;
     GetCursorPos(&p);
-    return Vector2(p.x, p.y);
+    return Vector2((float)p.x, (float)p.y);
 }
 
 float WindowsMisc::GetDPI()
