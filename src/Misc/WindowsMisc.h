@@ -2,6 +2,10 @@
 
 #include "Common/Common.h"
 
+#include "Math/Vector2.h"
+
+#include <string>
+
 struct WindowsMisc
 {
     static void RequestMinimize();
@@ -13,4 +17,8 @@ struct WindowsMisc
     static void GetDesktopResolution(int32& outWidth, int32& outHeight);
 
     static float GetDPI();
+
+    static std::string OpenFile(const char* filter);
+
+    static Vector2 GetMousePos();
 };

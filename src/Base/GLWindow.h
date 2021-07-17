@@ -2,6 +2,8 @@
 
 #include "Common/Common.h"
 
+#include "Math/Vector2.h"
+
 #include <string>
 #include <vector>
 
@@ -31,6 +33,10 @@ public:
 
     void Present();
 
+    void SetTitle(const char* title);
+
+    void MoveWindow(Vector2 delta);
+
     FORCEINLINE void AddView(std::shared_ptr<SceneView> view)
     {
         auto it = std::find(m_Views.begin(), m_Views.end(), view);
@@ -47,6 +53,11 @@ public:
         {
             m_Views.erase(it);
         }
+    }
+
+    FORCEINLINE void Close()
+    {
+        m_Closed = true;
     }
 
     FORCEINLINE int32 Width() const
@@ -100,5 +111,6 @@ private:
     bool                m_Resizable;
     GLFWwindow*         m_Window;
     SceneViewArray      m_Views;
-
+    Vector2             m_WindowPos;
+    bool                m_Closed;
 };

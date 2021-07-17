@@ -1,4 +1,5 @@
 ﻿#include "imgui.h"
+#include "imgui_internal.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
@@ -12,6 +13,8 @@
 UISceneView::UISceneView(std::shared_ptr<GLWindow> window)
     : SceneView(window)
     , m_ImGuiIO(nullptr)
+    , m_MenuBarMousePos(0.0f, 0.0f)
+    , m_MenuBarDragging(false)
 {
 
 }
@@ -38,6 +41,9 @@ bool UISceneView::Init()
 
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigWindowsMoveFromTitleBarOnly = true;
+    io.ConfigWindowsResizeFromEdges = false;
+    io.IniFilename = "../imgui.ini";
+    io.LogFilename = "../imgui.log";
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
@@ -68,6 +74,75 @@ void UISceneView::OnUpdate()
 
 }
 
+void UISceneView::HandleMoving()
+{
+    if (ImGui::IsMouseDown(0) == false)
+    {
+        m_MenuBarDragging = false;
+    }
+
+    if (m_MenuBarDragging)
+    {
+        Vector2 currPos = WindowsMisc::GetMousePos();
+        Vector2 delta   = currPos - m_MenuBarMousePos;
+        if (delta.Size() >= 0.01f)
+        {
+            m_Window->MoveWindow(delta);
+            m_MenuBarMousePos = currPos;
+        }
+    }
+}
+
+void UISceneView::DrawMenuBar()
+{
+    if (ImGui::BeginMainMenuBar())
+    {
+        // dragging
+        if (ImGui::IsMouseHoveringRect(ImGui::GetCurrentWindow()->MenuBarRect().Min, ImGui::GetCurrentWindow()->MenuBarRect().Max))
+        {
+            if (ImGui::IsMouseDown(0))
+            {
+                if (m_MenuBarDragging == false)
+                {
+                    m_MenuBarDragging = true;
+                    m_MenuBarMousePos = WindowsMisc::GetMousePos();
+                }
+            }
+        }
+
+        // File menu items
+        if (ImGui::BeginMenu("File"))
+        {
+            if (ImGui::MenuItem("Import gltf"))
+            {
+                std::string fileName = WindowsMisc::OpenFile("GLTF Files\0*.gltf;*.glb\0\0");
+                LOGD("GLTF file : %s", fileName.c_str());
+            }
+
+            if (ImGui::MenuItem("Import HDR"))
+            {
+                std::string fileName = WindowsMisc::OpenFile("HDR Files\0*.hdr\0\0");
+                LOGD("HDR file : %s", fileName.c_str());
+            }
+
+            if (ImGui::MenuItem("Quit", "ESC"))
+            {
+                m_Window->Close();
+            }
+
+            ImGui::EndMenu();
+        }
+
+        // Tools items
+        if (ImGui::BeginMenu("Tools"))
+        {
+            ImGui::EndMenu();
+        }
+
+        ImGui::EndMainMenuBar();
+    }
+}
+
 void UISceneView::OnRender()
 {
     // Start the Dear ImGui frame
@@ -75,33 +150,9 @@ void UISceneView::OnRender()
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    if (ImGui::BeginMainMenuBar())
-    {
-        auto pos = ImGui::GetMousePos();
+    HandleMoving();
 
-        if (ImGui::BeginMenu("File"))
-        {
-            if (ImGui::MenuItem("Open"))
-            {
-
-            }
-
-            if (ImGui::MenuItem("Quit"))
-            {
-
-            }
-
-            ImGui::EndMenu();
-        }
-
-        if (ImGui::BeginMenu("Tools"))
-        {
-
-            ImGui::EndMenu();
-        }
-
-        ImGui::EndMainMenuBar();
-    }
+    DrawMenuBar();
 
     // Our state
     static bool show_demo_window = true;

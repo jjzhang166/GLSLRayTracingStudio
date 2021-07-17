@@ -68,9 +68,39 @@ void WindowsMisc::PreventScreenSaver()
     SendInput(1, &input, sizeof(INPUT));
 }
 
+Vector2 WindowsMisc::GetMousePos()
+{
+    POINT p;
+    GetCursorPos(&p);
+    return Vector2(p.x, p.y);
+}
+
 float WindowsMisc::GetDPI()
 {
     HWND hWnd = GetDesktopWindow();
     UINT dpi  = GetDpiForWindow(hWnd);
     return (float)dpi;
+}
+
+std::string WindowsMisc::OpenFile(const char* filter)
+{
+    char filename[MAX_PATH];
+    ZeroMemory(&filename, sizeof(filename));
+
+    OPENFILENAME ofn;
+    ZeroMemory(&ofn, sizeof(ofn));
+    ofn.lStructSize = sizeof(ofn);
+    ofn.hwndOwner   = nullptr;
+    ofn.lpstrFilter = filter;
+    ofn.lpstrFile   = filename;
+    ofn.nMaxFile    = MAX_PATH;
+    ofn.lpstrTitle  = "Choose File";
+    ofn.Flags       = OFN_DONTADDTORECENT | OFN_FILEMUSTEXIST;
+
+    if (GetOpenFileNameA(&ofn))
+    {
+        return std::string(filename);
+    }
+
+    return std::string("");
 }
