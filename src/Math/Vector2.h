@@ -2,6 +2,8 @@
 
 #include "Common/Common.h"
 
+#include "Math/Math.h"
+
 struct Vector2
 {
 public:

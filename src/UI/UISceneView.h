@@ -2,6 +2,8 @@
 
 #include "Base/SceneView.h"
 
+#include "Math/Vector2.h"
+
 #include <memory>
 
 struct ImGuiIO;
@@ -28,5 +30,16 @@ public:
 
 private:
 
-    ImGuiIO* m_ImGuiIO;
+    void DrawMenuBar();
+    void DrawAboutUI();
+    void HandleMoving();
+
+private:
+
+    ImGuiIO*    m_ImGuiIO;
+
+    Vector2     m_MenuBarMousePos;
+    bool        m_MenuBarDragging;
+
+    bool        m_ShowingAbout;
 };

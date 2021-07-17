@@ -23,6 +23,8 @@ GLWindow::GLWindow(int32 width, int32 height, const char* title, bool resizable)
     , m_Resizable(resizable)
     , m_Window(nullptr)
     , m_Views()
+    , m_WindowPos(0.0f, 0.0f)
+    , m_Closed(false)
 {
 
 }
@@ -30,6 +32,18 @@ GLWindow::GLWindow(int32 width, int32 height, const char* title, bool resizable)
 GLWindow::~GLWindow()
 {
     m_Views.clear();
+}
+
+void GLWindow::SetTitle(const char* title)
+{
+    m_Title = title;
+    glfwSetWindowTitle(m_Window, m_Title.c_str());
+}
+
+void GLWindow::MoveWindow(Vector2 delta)
+{
+    m_WindowPos += delta;
+    glfwSetWindowPos(m_Window, int32(m_WindowPos.x), int32(m_WindowPos.y));
 }
 
 bool GLWindow::Init()
@@ -48,6 +62,7 @@ bool GLWindow::Init()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
 
     // Create window with graphics context
     m_Window = glfwCreateWindow(Width(), Height(), Title(), NULL, NULL);
@@ -76,6 +91,11 @@ bool GLWindow::Init()
     // center window
     SetWindowCenter();
 
+    int32 xPos = 0;
+    int32 yPos = 0;
+    glfwGetWindowPos(m_Window, &xPos, &yPos);
+    m_WindowPos = Vector2((float)xPos, (float)yPos);
+
     return true;
 }
 
@@ -90,7 +110,7 @@ void GLWindow::Destroy()
 
 bool GLWindow::ShouldClose()
 {
-    return glfwWindowShouldClose(m_Window);
+    return glfwWindowShouldClose(m_Window) || m_Closed;
 }
 
 void GLWindow::Update()

@@ -10,6 +10,7 @@ set(CMAKE_CXX_STANDARD 11)
 add_definitions(-DNOMINMAX=1)
 add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 add_definitions(-DPLATFORM_WINDOWS=1)
+add_definitions(-DAPP_VERSION="1.0.0")
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_compile_definitions(DEBUG)
