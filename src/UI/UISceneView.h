@@ -44,6 +44,8 @@ private:
 
     void DrawAssetsPanel();
 
+    void DrawMessageUI();
+
 private:
 
     ImGuiIO*    m_ImGuiIO;
@@ -60,4 +62,7 @@ private:
     Rectangle   m_PanelProjectRect;
     Rectangle   m_PanelPropertyRect;
     Rectangle   m_PanelAssetsRect;
+    Rectangle   m_PanelScene3DRect;
+
+    std::string m_Message;
 };

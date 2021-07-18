@@ -46,9 +46,11 @@ set(UI_SRCS
 )
 
 set(MISC_HDRS
+    Misc/FileMisc.h
     Misc/WindowsMisc.h
 )
 set(MISC_SRCS
+    Misc/FileMisc.cpp
     Misc/WindowsMisc.cpp
 )
 
