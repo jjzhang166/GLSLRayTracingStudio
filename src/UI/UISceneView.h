@@ -7,7 +7,6 @@
 #include <memory>
 
 struct ImGuiIO;
-
 class GLWindow;
 
 class UISceneView : public SceneView
@@ -44,20 +43,25 @@ private:
 
     void DrawAssetsPanel();
 
+    void DrawMessageUI();
+
 private:
 
-    ImGuiIO*    m_ImGuiIO;
+    ImGuiIO*        m_ImGuiIO;
 
-    Vector2     m_MenuBarMousePos;
-    bool        m_MenuBarDragging;
+    Vector2         m_MenuBarMousePos;
+    bool            m_MenuBarDragging;
 
-    bool        m_ShowingAbout;
+    bool            m_ShowingAbout;
 
-    float       m_PanelProjectWidth;
-    float       m_PanelPropertyWidth;
-    float       m_PanelAssetsWidth;
+    float           m_PanelProjectWidth;
+    float           m_PanelPropertyWidth;
+    float           m_PanelAssetsWidth;
 
-    Rectangle   m_PanelProjectRect;
-    Rectangle   m_PanelPropertyRect;
-    Rectangle   m_PanelAssetsRect;
+    Rectangle       m_PanelProjectRect;
+    Rectangle       m_PanelPropertyRect;
+    Rectangle       m_PanelAssetsRect;
+    Rectangle       m_PanelScene3DRect;
+
+    std::string     m_Message;
 };

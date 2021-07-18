@@ -46,10 +46,14 @@ set(UI_SRCS
 )
 
 set(MISC_HDRS
+    Misc/FileMisc.h
     Misc/WindowsMisc.h
+    Misc/JobManager.h
 )
 set(MISC_SRCS
+    Misc/FileMisc.cpp
     Misc/WindowsMisc.cpp
+    Misc/JobManager.cpp
 )
 
 set(BVH_HDRS

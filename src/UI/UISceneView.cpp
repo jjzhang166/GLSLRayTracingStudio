@@ -6,10 +6,13 @@
 #include "Common/Log.h"
 #include "Math/Math.h"
 #include "Base/GLWindow.h"
-#include "Misc/WindowsMisc.h"
 #include "UI/UISceneView.h"
 #include "Parser/GLTFParser.h"
-#include "Job/TaskThreadPool.h"
+#include "Misc/FileMisc.h"
+#include "Misc/WindowsMisc.h"
+#include "Misc/JobManager.h"
+
+const static float TitleBarHeight = 19;
 
 UISceneView::UISceneView(std::shared_ptr<GLWindow> window)
     : SceneView(window)
@@ -84,14 +87,13 @@ void UISceneView::OnUpdate()
 
 void UISceneView::UpdatePanelRects()
 {
-    const static float TitleBarHeight = 19;
-
     const ImGuiViewport* mainViewport = ImGui::GetMainViewport();
     const Rectangle mainRect(mainViewport->WorkPos.x, mainViewport->WorkPos.y, mainViewport->WorkSize.x, mainViewport->WorkSize.y);
 
     m_PanelProjectRect.Set(mainRect.x, mainRect.y, m_PanelProjectWidth, mainRect.h - m_PanelAssetsWidth - TitleBarHeight);
     m_PanelPropertyRect.Set(mainRect.w - m_PanelPropertyWidth, mainRect.y, m_PanelPropertyWidth, mainRect.h - m_PanelAssetsWidth - TitleBarHeight);
     m_PanelAssetsRect.Set(mainRect.x, mainRect.h - m_PanelAssetsWidth, mainRect.w, m_PanelAssetsWidth);
+    m_PanelScene3DRect.Set(m_PanelProjectRect.Right(), m_PanelProjectRect.Top(), mainRect.w - m_PanelPropertyWidth - m_PanelProjectWidth, m_PanelProjectRect.h);
 }
 
 void UISceneView::HandleMoving()
@@ -137,13 +139,9 @@ void UISceneView::DrawMenuBar()
             if (ImGui::MenuItem("Open GLTF"))
             {
                 std::string fileName = WindowsMisc::OpenFile("GLTF Files\0*.gltf;*.glb\0\0");
+                LoadGLTFJob* gltfJob = new LoadGLTFJob(fileName);
+                JobManager::AddJob(gltfJob);
                 LOGD("GLTF file : %s", fileName.c_str());
-
-                /*TaskThreadPool*	taskPool = new TaskThreadPool();
-		        taskPool->Create(MMath::Max((int32)std::thread::hardware_concurrency(), 8));
-                
-                JobLoadGLTF* job = new JobLoadGLTF(fileName);
-                taskPool->AddTask(job);*/
             }
 
             if (ImGui::MenuItem("Open HDR"))
@@ -227,7 +225,52 @@ void UISceneView::DrawPropertyPanel()
     ImGui::Begin("Property", nullptr, windowFlags);
     ImGui::PopStyleVar(3);
 
+    ImGui::End();
+}
 
+void UISceneView::DrawMessageUI()
+{
+    if (JobManager::Count() == 0)
+    {
+        return;
+    }
+
+    char buf[32];
+    ImFormatString(buf, 32, "Doing %d jobs...", JobManager::Count());
+    m_Message = buf;
+
+    static float MsgUIWidth  = 300.0f;
+    static float MsgUIHeight = 50.0f;
+
+    ImGui::SetNextWindowSize(ImVec2(MsgUIWidth, MsgUIHeight));
+    ImGui::SetNextWindowPos(ImVec2(m_PanelScene3DRect.Left(), m_PanelScene3DRect.Bottom() - MsgUIHeight + TitleBarHeight));
+
+    ImGui::SetNextWindowBgAlpha(0.75f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 15.0);
+
+    ImGuiWindowFlags windowFlags = 0;
+    windowFlags |= ImGuiWindowFlags_NoDecoration;
+    windowFlags |= ImGuiWindowFlags_AlwaysAutoResize;
+    windowFlags |= ImGuiWindowFlags_NoSavedSettings;
+    windowFlags |= ImGuiWindowFlags_NoFocusOnAppearing;
+    windowFlags |= ImGuiWindowFlags_NoMove;
+    windowFlags |= ImGuiWindowFlags_NoNav;
+    windowFlags |= ImGuiWindowFlags_NoMouseInputs;
+
+    if (ImGui::Begin("##notitle", nullptr, windowFlags))
+    {
+        ImVec2 available = ImGui::GetContentRegionAvail();
+        ImVec2 textSize  = ImGui::CalcTextSize(m_Message.c_str(), nullptr, false, available.x);
+
+        ImVec2 pos = ImGui::GetCursorPos();
+        pos.x += (available.x - textSize.x) * 0.5f;
+        pos.y += (available.y - textSize.y) * 0.5f;
+
+        ImGui::SetCursorPos(pos);
+        ImGui::TextWrapped(m_Message.c_str());
+    }
+
+    ImGui::PopStyleVar();
     ImGui::End();
 }
 
@@ -287,6 +330,10 @@ void UISceneView::OnRender()
 
     DrawAssetsPanel();
 
+    DrawMessageUI();
+
+    //ImGui::ShowDemoWindow();
+    
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }

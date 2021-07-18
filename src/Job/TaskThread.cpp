@@ -68,6 +68,7 @@ int32 TaskThread::Run()
         while (localTask != nullptr)
         {
             localTask->DoThreadedWork();
+            localTask->OnComplete();
             localTask = m_OwningThreadPool->ReturnToPoolOrGetNextJob(this);
         } 
     }
