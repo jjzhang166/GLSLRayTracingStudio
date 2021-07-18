@@ -1,12 +1,11 @@
 ﻿set(BASE_HDRS
     Base/SceneView.h
     Base/GLWindow.h
-    Base/Mesh.h
+    Base/Base.h
 )
 set(BASE_SRCS
     Base/SceneView.cpp
     Base/GLWindow.cpp
-    Base/Mesh.cpp
 )
 
 set(COMMON_HDRS
@@ -32,6 +31,7 @@ set(MATH_HDRS
     Math/WindowsPlatformMath.h
     Math/Bounds3D.h
     Math/Rectangle.h
+    Math/WindowsPlatformAtomics.h
 )
 set(MATH_SRCS
     Math/GenericPlatformMath.cpp
@@ -80,6 +80,22 @@ set(JOB_SRCS
     Job/ThreadManager.cpp
 )
 
+set(PARSER_HDRS
+    Parser/stb_image_resize.h
+    Parser/json.hpp
+    Parser/stb_image_write.h
+    Parser/stb_image.h
+    Parser/tiny_gltf.h
+    Parser/GLTFParser.h
+)
+set(PARSER_SRCS
+    Parser/stb_image_resize.cpp
+    Parser/stb_image_write.cpp
+    Parser/stb_image.cpp
+    Parser/tiny_gltf.cpp
+    Parser/GLTFParser.cpp
+)
+
 add_library(engine STATIC
     ${BASE_HDRS}
     ${BASE_SRCS}
@@ -101,6 +117,9 @@ add_library(engine STATIC
 
     ${BVH_HDRS}
     ${BVH_SRCS}
+
+    ${PARSER_HDRS}
+    ${PARSER_SRCS}
 )
 
 source_group(src\\Base FILES ${BASE_HDRS} ${BASE_SRCS})
@@ -110,3 +129,4 @@ source_group(src\\Misc FILES ${MISC_HDRS} ${MISC_SRCS})
 source_group(src\\Math FILES ${MATH_SRCS} ${MATH_HDRS})
 source_group(src\\Job FILES ${JOB_HDRS} ${JOB_SRCS})
 source_group(src\\Bvh FILES ${BVH_HDRS} ${BVH_SRCS})
+source_group(src\\Parser FILES ${PARSER_HDRS} ${PARSER_SRCS})

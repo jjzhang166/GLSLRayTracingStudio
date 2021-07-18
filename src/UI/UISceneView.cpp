@@ -4,9 +4,12 @@
 #include "imgui_impl_opengl3.h"
 
 #include "Common/Log.h"
+#include "Math/Math.h"
 #include "Base/GLWindow.h"
 #include "Misc/WindowsMisc.h"
 #include "UI/UISceneView.h"
+#include "Parser/GLTFParser.h"
+#include "Job/TaskThreadPool.h"
 
 UISceneView::UISceneView(std::shared_ptr<GLWindow> window)
     : SceneView(window)
@@ -135,6 +138,12 @@ void UISceneView::DrawMenuBar()
             {
                 std::string fileName = WindowsMisc::OpenFile("GLTF Files\0*.gltf;*.glb\0\0");
                 LOGD("GLTF file : %s", fileName.c_str());
+
+                /*TaskThreadPool*	taskPool = new TaskThreadPool();
+		        taskPool->Create(MMath::Max((int32)std::thread::hardware_concurrency(), 8));
+                
+                JobLoadGLTF* job = new JobLoadGLTF(fileName);
+                taskPool->AddTask(job);*/
             }
 
             if (ImGui::MenuItem("Open HDR"))

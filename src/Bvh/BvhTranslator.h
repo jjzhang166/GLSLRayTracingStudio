@@ -29,8 +29,8 @@ THE SOFTWARE.
 
 #include <map>
 
-#include "Bvh.h"
-#include "Base/Mesh.h"
+#include "Bvh/Bvh.h"
+#include "Base/Base.h"
 
 /// This class translates pointer based BVH representation into
 /// index based one suitable for feeding to GPU or any other accelerator
