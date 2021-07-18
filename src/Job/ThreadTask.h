@@ -34,10 +34,6 @@ public:
         return PlatformAtomics::AtomicRead(&m_Status) == (int32)Status::Done;
     }
 
-protected:
-
-    friend class TaskThread;
-
     virtual void OnComplete()
     {
         PlatformAtomics::InterlockedExchange(&m_Status, (int32)Status::Done);

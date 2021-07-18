@@ -6,11 +6,11 @@
 #include "Common/Log.h"
 #include "Math/Math.h"
 #include "Base/GLWindow.h"
-#include "Misc/WindowsMisc.h"
 #include "UI/UISceneView.h"
 #include "Parser/GLTFParser.h"
-#include "Job/TaskThreadPool.h"
 #include "Misc/FileMisc.h"
+#include "Misc/WindowsMisc.h"
+#include "Misc/JobManager.h"
 
 const static float TitleBarHeight = 19;
 
@@ -139,14 +139,9 @@ void UISceneView::DrawMenuBar()
             if (ImGui::MenuItem("Open GLTF"))
             {
                 std::string fileName = WindowsMisc::OpenFile("GLTF Files\0*.gltf;*.glb\0\0");
+                LoadGLTFJob* gltfJob = new LoadGLTFJob(fileName);
+                JobManager::AddJob(gltfJob);
                 LOGD("GLTF file : %s", fileName.c_str());
-
-                /*TaskThreadPool*	taskPool = new TaskThreadPool();
-                taskPool->Create(MMath::Max((int32)std::thread::hardware_concurrency(), 8));
-                
-                JobLoadGLTF* job = new JobLoadGLTF(fileName);
-                taskPool->AddTask(job);*/
-                m_Message = "Loading gltf...\n";
             }
 
             if (ImGui::MenuItem("Open HDR"))
@@ -235,10 +230,14 @@ void UISceneView::DrawPropertyPanel()
 
 void UISceneView::DrawMessageUI()
 {
-    if (m_Message.empty())
+    if (JobManager::Count() == 0)
     {
         return;
     }
+
+    char buf[32];
+    ImFormatString(buf, 32, "Doing %d jobs...", JobManager::Count());
+    m_Message = buf;
 
     static float MsgUIWidth  = 300.0f;
     static float MsgUIHeight = 50.0f;

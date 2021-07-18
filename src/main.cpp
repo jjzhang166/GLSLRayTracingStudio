@@ -3,6 +3,7 @@
 #include "Base/GLWindow.h"
 #include "UI/UISceneView.h"
 #include "Misc/WindowsMisc.h"
+#include "Misc/JobManager.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,6 +12,8 @@
 int32 main(int32, char**)
 {
     LOGD("Hello GLSLRayTracingStudio");
+
+    JobManager::Init(8);
 
     int32 deskSizeW = 0;
     int32 deskSizeH = 0;
@@ -33,15 +36,17 @@ int32 main(int32, char**)
 
     while (!window->ShouldClose())
     {
+        JobManager::Tick();
+
         window->Update();
-
         window->Render();
-
         window->Present();
     }
 
     uiView->Destroy();
     window->Destroy();
+
+    JobManager::Destroy();
     
     return 0;
 }
