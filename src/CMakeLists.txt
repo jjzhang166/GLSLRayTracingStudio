@@ -31,6 +31,7 @@ set(MATH_HDRS
     Math/Vector4.h
     Math/WindowsPlatformMath.h
     Math/Bounds3D.h
+    Math/Rectangle.h
 )
 set(MATH_SRCS
     Math/GenericPlatformMath.cpp

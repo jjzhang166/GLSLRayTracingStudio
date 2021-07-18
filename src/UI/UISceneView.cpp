@@ -4,10 +4,8 @@
 #include "imgui_impl_opengl3.h"
 
 #include "Common/Log.h"
-
 #include "Base/GLWindow.h"
 #include "Misc/WindowsMisc.h"
-
 #include "UI/UISceneView.h"
 
 UISceneView::UISceneView(std::shared_ptr<GLWindow> window)
@@ -17,6 +15,10 @@ UISceneView::UISceneView(std::shared_ptr<GLWindow> window)
     , m_MenuBarDragging(false)
 
     , m_ShowingAbout(false)
+
+    , m_PanelProjectWidth(300.0f)
+    , m_PanelPropertyWidth(300.0f)
+    , m_PanelAssetsWidth(200.0f)
 {
 
 }
@@ -44,15 +46,12 @@ bool UISceneView::Init()
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigWindowsMoveFromTitleBarOnly = true;
     io.ConfigWindowsResizeFromEdges = false;
-    io.IniFilename = "../imgui.ini";
-    io.LogFilename = "../imgui.log";
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-
-    // Setup Dear ImGui style
-    //ImGui::StyleColorsDark();
-    //ImGui::StyleColorsClassic();
-    ImGui::StyleColorsLight();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+    //io.IniFilename = "../imgui.ini"; 
+    //io.LogFilename = "../imgui.log";
+    
+    ImGui::StyleColorsDark();
 
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(Window()->Window(), true);
@@ -73,7 +72,23 @@ void UISceneView::Destroy()
 
 void UISceneView::OnUpdate()
 {
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
 
+    UpdatePanelRects();
+}
+
+void UISceneView::UpdatePanelRects()
+{
+    const static float TitleBarHeight = 19;
+
+    const ImGuiViewport* mainViewport = ImGui::GetMainViewport();
+    const Rectangle mainRect(mainViewport->WorkPos.x, mainViewport->WorkPos.y, mainViewport->WorkSize.x, mainViewport->WorkSize.y);
+
+    m_PanelProjectRect.Set(mainRect.x, mainRect.y, m_PanelProjectWidth, mainRect.h - m_PanelAssetsWidth - TitleBarHeight);
+    m_PanelPropertyRect.Set(mainRect.w - m_PanelPropertyWidth, mainRect.y, m_PanelPropertyWidth, mainRect.h - m_PanelAssetsWidth - TitleBarHeight);
+    m_PanelAssetsRect.Set(mainRect.x, mainRect.h - m_PanelAssetsWidth, mainRect.w, m_PanelAssetsWidth);
 }
 
 void UISceneView::HandleMoving()
@@ -97,6 +112,7 @@ void UISceneView::HandleMoving()
 
 void UISceneView::DrawMenuBar()
 {
+    // TODO:find a way to show close button.
     if (ImGui::BeginMainMenuBar())
     {
         // dragging
@@ -115,7 +131,19 @@ void UISceneView::DrawMenuBar()
         // File menu items
         if (ImGui::BeginMenu("File"))
         {
-            if (ImGui::MenuItem("Import gltf"))
+            if (ImGui::MenuItem("Open GLTF"))
+            {
+                std::string fileName = WindowsMisc::OpenFile("GLTF Files\0*.gltf;*.glb\0\0");
+                LOGD("GLTF file : %s", fileName.c_str());
+            }
+
+            if (ImGui::MenuItem("Open HDR"))
+            {
+                std::string fileName = WindowsMisc::OpenFile("HDR Files\0*.hdr\0\0");
+                LOGD("HDR file : %s", fileName.c_str());
+            }
+
+            if (ImGui::MenuItem("Import GLTF"))
             {
                 std::string fileName = WindowsMisc::OpenFile("GLTF Files\0*.gltf;*.glb\0\0");
                 LOGD("GLTF file : %s", fileName.c_str());
@@ -145,23 +173,23 @@ void UISceneView::DrawMenuBar()
 
             ImGui::EndMenu();
         }
-
-        ImGui::EndMainMenuBar();
     }
+
+    ImGui::EndMainMenuBar();
 }
 
 void UISceneView::DrawAboutUI()
 {
     if (m_ShowingAbout)
     {
-        ImGuiWindowFlags window_flags = 0;
-        window_flags |= ImGuiWindowFlags_NoScrollbar;
-        window_flags |= ImGuiWindowFlags_NoResize;
-        window_flags |= ImGuiWindowFlags_NoCollapse;
-        window_flags |= ImGuiWindowFlags_NoMove;
+        ImGuiWindowFlags windowFlags = 0;
+        windowFlags |= ImGuiWindowFlags_NoScrollbar;
+        windowFlags |= ImGuiWindowFlags_NoResize;
+        windowFlags |= ImGuiWindowFlags_NoCollapse;
+        windowFlags |= ImGuiWindowFlags_NoMove;
 
         ImGui::OpenPopup("About");
-        if (ImGui::BeginPopupModal("About", &m_ShowingAbout, window_flags))
+        if (ImGui::BeginPopupModal("About", &m_ShowingAbout, windowFlags))
         {
             ImGui::Text("GLSLRayTracingStudio %s", APP_VERSION);
             ImGui::Separator();
@@ -173,62 +201,83 @@ void UISceneView::DrawAboutUI()
     }
 }
 
+void UISceneView::DrawPropertyPanel()
+{
+    ImGuiWindowFlags windowFlags = 0;
+    windowFlags |= ImGuiWindowFlags_NoMove;
+    windowFlags |= ImGuiWindowFlags_NoCollapse;
+    windowFlags |= ImGuiWindowFlags_NoResize;
+    windowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
+
+    ImGui::SetNextWindowPos(ImVec2(m_PanelPropertyRect.x, m_PanelPropertyRect.y), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(m_PanelPropertyRect.w, m_PanelPropertyRect.h), ImGuiCond_FirstUseEver);
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+    ImGui::Begin("Property", nullptr, windowFlags);
+    ImGui::PopStyleVar(3);
+
+
+    ImGui::End();
+}
+
+void UISceneView::DrawAssetsPanel()
+{
+    ImGuiWindowFlags windowFlags = 0;
+    windowFlags |= ImGuiWindowFlags_NoMove;
+    windowFlags |= ImGuiWindowFlags_NoCollapse;
+    windowFlags |= ImGuiWindowFlags_NoResize;
+    windowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
+
+    ImGui::SetNextWindowPos(ImVec2(m_PanelAssetsRect.x, m_PanelAssetsRect.y), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(m_PanelAssetsRect.w, m_PanelAssetsRect.h), ImGuiCond_FirstUseEver);
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+    ImGui::Begin("Assets", nullptr, windowFlags);
+    ImGui::PopStyleVar(3);
+
+
+    ImGui::End();
+}
+
+void UISceneView::DrawProjectPanel()
+{
+    ImGuiWindowFlags windowFlags = 0;
+    windowFlags |= ImGuiWindowFlags_NoMove;
+    windowFlags |= ImGuiWindowFlags_NoCollapse;
+    windowFlags |= ImGuiWindowFlags_NoResize;
+    windowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
+
+    ImGui::SetNextWindowPos(ImVec2(m_PanelProjectRect.x, m_PanelProjectRect.y), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(m_PanelProjectRect.w, m_PanelProjectRect.h), ImGuiCond_FirstUseEver);
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+    ImGui::Begin("Project", nullptr, windowFlags);
+    ImGui::PopStyleVar(3);
+
+
+    ImGui::End();
+}
+
 void UISceneView::OnRender()
 {
-    // Start the Dear ImGui frame
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-
     HandleMoving();
+
     DrawAboutUI();
+
     DrawMenuBar();
 
-    // Our state
-    static bool show_demo_window = true;
-    static bool show_another_window = false;
-    static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    DrawProjectPanel();
 
-    // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-    if (show_demo_window)
-    {
-        ImGui::ShowDemoWindow(&show_demo_window);
-    }
+    DrawPropertyPanel();
 
-    // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
-    {
-        static float f = 0.0f;
-        static int32 counter = 0;
+    DrawAssetsPanel();
 
-        ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-
-        ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-        ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-        ImGui::Checkbox("Another Window", &show_another_window);
-
-        ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-        ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-
-        if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-            counter++;
-        ImGui::SameLine();
-        ImGui::Text("counter = %d", counter);
-
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-        ImGui::End();
-    }
-
-    // 3. Show another simple window.
-    if (show_another_window)
-    {
-        ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-        ImGui::Text("Hello from another window!");
-        if (ImGui::Button("Close Me"))
-            show_another_window = false;
-        ImGui::End();
-    }
-
-    // Rendering
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }

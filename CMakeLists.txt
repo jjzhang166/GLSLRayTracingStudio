@@ -11,6 +11,7 @@ add_definitions(-DNOMINMAX=1)
 add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 add_definitions(-DPLATFORM_WINDOWS=1)
 add_definitions(-DAPP_VERSION="1.0.0")
+add_definitions(-DASSETS_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}/assets/\")
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_compile_definitions(DEBUG)
