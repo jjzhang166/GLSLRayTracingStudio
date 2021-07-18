@@ -31,8 +31,13 @@ void JobManager::Tick()
         ThreadTask* job = s_Jobs[i];
         if (job->IsDone())
         {
-            s_Jobs.erase(s_Jobs.begin() + i);
+            if (job->onCompleteEvent)
+            {
+                job->onCompleteEvent(job);
+                job->onCompleteEvent = nullptr;
+            }
             delete job;
+            s_Jobs.erase(s_Jobs.begin() + i);
         }
     }
 }

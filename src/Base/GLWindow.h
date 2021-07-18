@@ -3,13 +3,13 @@
 #include "Common/Common.h"
 
 #include "Math/Vector2.h"
+#include "View/Scene3DView.h"
+#include "View/UISceneView.h"
 
 #include <string>
 #include <vector>
 
 struct GLFWwindow;
-
-class SceneView;
 
 class GLWindow
 {
@@ -37,22 +37,24 @@ public:
 
     void MoveWindow(Vector2 delta);
 
-    FORCEINLINE void AddView(std::shared_ptr<SceneView> view)
+    FORCEINLINE void SetScene3DView(std::shared_ptr<Scene3DView> view)
     {
-        auto it = std::find(m_Views.begin(), m_Views.end(), view);
-        if (it == m_Views.end())
-        {
-            m_Views.push_back(view);
-        }
+        m_Scene3DView = view;
     }
 
-    FORCEINLINE void RemoveView(std::shared_ptr<SceneView> view)
+    FORCEINLINE std::shared_ptr<Scene3DView> GetScene3DView() const
     {
-        auto it = std::find(m_Views.begin(), m_Views.end(), view);
-        if (it != m_Views.end())
-        {
-            m_Views.erase(it);
-        }
+        return m_Scene3DView;
+    }
+
+    FORCEINLINE void SetUISceneView(std::shared_ptr<UISceneView> view)
+    {
+        m_UISceneView = view;
+    }
+
+    FORCEINLINE std::shared_ptr<UISceneView> GetUISceneView() const
+    {
+        return m_UISceneView;
     }
 
     FORCEINLINE void Close()
@@ -101,16 +103,15 @@ private:
 
 private:
 
-    typedef std::vector<std::shared_ptr<SceneView>> SceneViewArray;
-
-    int32               m_Width;
-    int32               m_Height;
-    int32               m_FrameWidth;
-    int32               m_FrameHeight;
-    std::string         m_Title;
-    bool                m_Resizable;
-    GLFWwindow*         m_Window;
-    SceneViewArray      m_Views;
-    Vector2             m_WindowPos;
-    bool                m_Closed;
+    int32                           m_Width;
+    int32                           m_Height;
+    int32                           m_FrameWidth;
+    int32                           m_FrameHeight;
+    std::string                     m_Title;
+    bool                            m_Resizable;
+    GLFWwindow*                     m_Window;
+    std::shared_ptr<Scene3DView>    m_Scene3DView;
+    std::shared_ptr<UISceneView>    m_UISceneView;
+    Vector2                         m_WindowPos;
+    bool                            m_Closed;
 };

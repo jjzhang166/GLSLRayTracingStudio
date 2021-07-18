@@ -1,7 +1,8 @@
 ﻿#include "Common/Log.h"
 
 #include "Base/GLWindow.h"
-#include "UI/UISceneView.h"
+#include "View/UISceneView.h"
+#include "View/Scene3DView.h"
 #include "Misc/WindowsMisc.h"
 #include "Misc/JobManager.h"
 
@@ -26,13 +27,20 @@ int32 main(int32, char**)
         exit(1);
     }
 
+    auto view3D = std::make_shared<Scene3DView>(window);
+    if (!view3D->Init())
+    {
+        exit(1);
+    }
+    
     auto uiView = std::make_shared<UISceneView>(window);
     if (!uiView->Init())
     {
         exit(1);
     }
 
-    window->AddView(uiView);
+    window->SetUISceneView(uiView);
+    window->SetScene3DView(view3D);
 
     while (!window->ShouldClose())
     {
@@ -44,6 +52,7 @@ int32 main(int32, char**)
     }
 
     uiView->Destroy();
+    view3D->Destroy();
     window->Destroy();
 
     JobManager::Destroy();

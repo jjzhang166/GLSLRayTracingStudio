@@ -2,7 +2,7 @@
 
 #include "Base/SceneView.h"
 #include "Math/Vector2.h"
-#include "Math/Rectangle.h"
+#include "Math/Rectangle2D.h"
 
 #include <memory>
 
@@ -15,7 +15,7 @@ public:
 
     UISceneView(std::shared_ptr<GLWindow> window);
 
-    ~UISceneView();
+    virtual ~UISceneView();
 
     bool Init() override;
 
@@ -26,6 +26,11 @@ public:
     void OnRender() override;
 
     ImGuiIO& ImIO() const;
+
+    FORCEINLINE Rectangle2D ViewPort3D() const
+    {
+        return m_PanelScene3DRect;
+    }
 
 private:
 
@@ -58,10 +63,10 @@ private:
     float           m_PanelPropertyWidth;
     float           m_PanelAssetsWidth;
 
-    Rectangle       m_PanelProjectRect;
-    Rectangle       m_PanelPropertyRect;
-    Rectangle       m_PanelAssetsRect;
-    Rectangle       m_PanelScene3DRect;
+    Rectangle2D       m_PanelProjectRect;
+    Rectangle2D       m_PanelPropertyRect;
+    Rectangle2D       m_PanelAssetsRect;
+    Rectangle2D       m_PanelScene3DRect;
 
     std::string     m_Message;
 };

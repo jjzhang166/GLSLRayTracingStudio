@@ -5,14 +5,14 @@
 #include "Math/Math.h"
 #include "Math/Vector2.h"
 
-struct Rectangle
+struct Rectangle2D
 {
     float x;
     float y;
     float w;
     float h;
 
-    Rectangle()
+    Rectangle2D()
         : x(0.0f)
         , y(0.0f)
         , w(0.0f)
@@ -21,7 +21,7 @@ struct Rectangle
 
     }
 
-    Rectangle(const Rectangle& other)
+    Rectangle2D(const Rectangle2D& other)
         : x(other.x)
         , y(other.y)
         , w(other.w)
@@ -30,7 +30,7 @@ struct Rectangle
 
     }
 
-    Rectangle(float inX, float inY, float inW, float inH)
+    Rectangle2D(float inX, float inY, float inW, float inH)
         : x(inX)
         , y(inY)
         , w(inW)
@@ -77,7 +77,7 @@ struct Rectangle
         return Contains(p.x, p.y);
     }
 
-    FORCEINLINE bool Contains(const Rectangle& r) const
+    FORCEINLINE bool Contains(const Rectangle2D& r) const
     {
         return Left() <= r.Left() &&
                Right() >= r.Right() &&
