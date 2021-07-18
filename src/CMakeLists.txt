@@ -2,6 +2,7 @@
     Base/SceneView.h
     Base/GLWindow.h
     Base/Base.h
+    Base/Renderer.h
 )
 set(BASE_SRCS
     Base/SceneView.cpp
@@ -30,7 +31,7 @@ set(MATH_HDRS
     Math/Vector4.h
     Math/WindowsPlatformMath.h
     Math/Bounds3D.h
-    Math/Rectangle.h
+    Math/Rectangle2D.h
     Math/WindowsPlatformAtomics.h
 )
 set(MATH_SRCS
@@ -38,11 +39,13 @@ set(MATH_SRCS
     Math/Math.cpp
 )
 
-set(UI_HDRS
-    UI/UISceneView.h
+set(VIEW_HDRS
+    View/UISceneView.h
+    View/Scene3DView.h
 )
-set(UI_SRCS
-    UI/UISceneView.cpp    
+set(VIEW_SRCS
+    View/UISceneView.cpp
+    View/Scene3DView.cpp
 )
 
 set(MISC_HDRS
@@ -100,6 +103,15 @@ set(PARSER_SRCS
     Parser/GLTFParser.cpp
 )
 
+set(RENDERER_HDRS
+    Renderer/PBRRenderer.h
+    Renderer/RayTracingRenderer.h
+)
+set(RENDERER_SRCS
+    Renderer/PBRRenderer.cpp
+    Renderer/RayTracingRenderer.cpp
+)
+
 add_library(engine STATIC
     ${BASE_HDRS}
     ${BASE_SRCS}
@@ -107,8 +119,8 @@ add_library(engine STATIC
     ${COMMON_HDRS}
     ${COMMON_SRCS}
 
-    ${UI_HDRS}
-    ${UI_SRCS}
+    ${VIEW_HDRS}
+    ${VIEW_SRCS}
 
     ${MISC_HDRS}
     ${MISC_SRCS}
@@ -124,13 +136,17 @@ add_library(engine STATIC
 
     ${PARSER_HDRS}
     ${PARSER_SRCS}
+
+    ${RENDERER_HDRS}
+    ${RENDERER_SRCS}
 )
 
 source_group(src\\Base FILES ${BASE_HDRS} ${BASE_SRCS})
 source_group(src\\Common FILES ${COMMON_HDRS} ${COMMON_SRCS})
-source_group(src\\UI FILES ${UI_HDRS} ${UI_SRCS})
+source_group(src\\View FILES ${VIEW_HDRS} ${VIEW_SRCS})
 source_group(src\\Misc FILES ${MISC_HDRS} ${MISC_SRCS})
 source_group(src\\Math FILES ${MATH_SRCS} ${MATH_HDRS})
 source_group(src\\Job FILES ${JOB_HDRS} ${JOB_SRCS})
 source_group(src\\Bvh FILES ${BVH_HDRS} ${BVH_SRCS})
 source_group(src\\Parser FILES ${PARSER_HDRS} ${PARSER_SRCS})
+source_group(src\\Renderer FILES ${RENDERER_HDRS} ${RENDERER_SRCS})

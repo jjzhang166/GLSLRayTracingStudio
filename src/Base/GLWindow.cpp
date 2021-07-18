@@ -22,7 +22,8 @@ GLWindow::GLWindow(int32 width, int32 height, const char* title, bool resizable)
     , m_Title(title)
     , m_Resizable(resizable)
     , m_Window(nullptr)
-    , m_Views()
+    , m_Scene3DView(nullptr)
+    , m_UISceneView(nullptr)
     , m_WindowPos(0.0f, 0.0f)
     , m_Closed(false)
 {
@@ -31,7 +32,7 @@ GLWindow::GLWindow(int32 width, int32 height, const char* title, bool resizable)
 
 GLWindow::~GLWindow()
 {
-    m_Views.clear();
+
 }
 
 void GLWindow::SetTitle(const char* title)
@@ -101,8 +102,6 @@ bool GLWindow::Init()
 
 void GLWindow::Destroy()
 {
-    m_Views.clear();
-
     glfwDestroyWindow(m_Window);
     glfwTerminate();
     m_Window = NULL;
@@ -116,24 +115,25 @@ bool GLWindow::ShouldClose()
 void GLWindow::Update()
 {
     glfwPollEvents();
-
-    for (size_t i = 0; i < m_Views.size(); ++i)
-    {
-        m_Views[i]->OnUpdate();
-    }
+    m_UISceneView->OnUpdate();
+    m_Scene3DView->OnUpdate();
 }
 
 void GLWindow::Render()
 {
     glfwGetFramebufferSize(m_Window, &m_FrameWidth, &m_FrameHeight);
+
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_STENCIL_TEST);
+    glEnable(GL_SCISSOR_TEST);
+
     glViewport(0, 0, m_FrameWidth, m_FrameHeight);
-    glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
+    glScissor(0, 0, m_FrameWidth, m_FrameHeight);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    for (size_t i = 0; i < m_Views.size(); ++i)
-    {
-        m_Views[i]->OnRender();
-    }
+    m_UISceneView->OnRender();
+    m_Scene3DView->OnRender();
 }
 
 void GLWindow::Present()

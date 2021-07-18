@@ -6,7 +6,7 @@
 #include "Common/Log.h"
 #include "Math/Math.h"
 #include "Base/GLWindow.h"
-#include "UI/UISceneView.h"
+#include "View/UISceneView.h"
 #include "Parser/GLTFParser.h"
 #include "Misc/FileMisc.h"
 #include "Misc/WindowsMisc.h"
@@ -88,12 +88,12 @@ void UISceneView::OnUpdate()
 void UISceneView::UpdatePanelRects()
 {
     const ImGuiViewport* mainViewport = ImGui::GetMainViewport();
-    const Rectangle mainRect(mainViewport->WorkPos.x, mainViewport->WorkPos.y, mainViewport->WorkSize.x, mainViewport->WorkSize.y);
+    const Rectangle2D mainRect(mainViewport->WorkPos.x, mainViewport->WorkPos.y, mainViewport->WorkSize.x, mainViewport->WorkSize.y);
 
     m_PanelProjectRect.Set(mainRect.x, mainRect.y, m_PanelProjectWidth, mainRect.h - m_PanelAssetsWidth - TitleBarHeight);
     m_PanelPropertyRect.Set(mainRect.w - m_PanelPropertyWidth, mainRect.y, m_PanelPropertyWidth, mainRect.h - m_PanelAssetsWidth - TitleBarHeight);
     m_PanelAssetsRect.Set(mainRect.x, mainRect.h - m_PanelAssetsWidth, mainRect.w, m_PanelAssetsWidth);
-    m_PanelScene3DRect.Set(m_PanelProjectRect.Right(), m_PanelProjectRect.Top(), mainRect.w - m_PanelPropertyWidth - m_PanelProjectWidth, m_PanelProjectRect.h);
+    m_PanelScene3DRect.Set(m_PanelProjectRect.Right(), mainRect.h - m_PanelProjectRect.h - TitleBarHeight, mainRect.w - m_PanelPropertyWidth - m_PanelProjectWidth, m_PanelProjectRect.h);
 }
 
 void UISceneView::HandleMoving()
@@ -140,8 +140,11 @@ void UISceneView::DrawMenuBar()
             {
                 std::string fileName = WindowsMisc::OpenFile("GLTF Files\0*.gltf;*.glb\0\0");
                 LoadGLTFJob* gltfJob = new LoadGLTFJob(fileName);
+                gltfJob->onCompleteEvent = [=](ThreadTask* task) -> void {
+                    LOGD("GLTF load complete : %s", fileName.c_str());
+                };
                 JobManager::AddJob(gltfJob);
-                LOGD("GLTF file : %s", fileName.c_str());
+                LOGD("Loading GLTF : %s", fileName.c_str());
             }
 
             if (ImGui::MenuItem("Open HDR"))

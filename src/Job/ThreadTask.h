@@ -2,6 +2,8 @@
 
 #include "Math/WindowsPlatformAtomics.h"
 
+#include <functional>
+
 class ThreadTask
 {
 private:
@@ -16,6 +18,7 @@ public:
 
     ThreadTask()
         : m_Status((int32)Status::None)
+        , onCompleteEvent(nullptr)
     {
 
     }
@@ -38,6 +41,10 @@ public:
     {
         PlatformAtomics::InterlockedExchange(&m_Status, (int32)Status::Done);
     }
+
+public:
+
+    std::function<void(ThreadTask*)>    onCompleteEvent;
 
 protected:
 
