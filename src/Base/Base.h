@@ -86,7 +86,7 @@ struct Material
 
     enum AlphaType
     {
-        OPAQUE = 0,
+        NONE = 0,
         MASK,
         BLEND
     };
@@ -193,4 +193,13 @@ struct Scene3D
     MeshArray               meshes;
     MaterialArray           materials;
     TextureArray            textures;
+
+    int32                   numCameras;
+    int32                   numImages;
+    int32                   numTextures;
+    int32                   numMaterials;
+    int32                   numSamplers;
+    int32                   numNodes;
+    int32                   numMeshes;
+    int32                   numLights;
 };

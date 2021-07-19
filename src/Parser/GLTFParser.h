@@ -19,6 +19,11 @@ public:
 
     }
 
+    FORCEINLINE Scene3DPtr GetScene() const
+    {
+        return m_Scene3D;
+    }
+
 private:
 
     std::string         m_Path;
