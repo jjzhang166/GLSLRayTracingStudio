@@ -14,6 +14,100 @@
 
 #include <glad/glad.h>
 
+struct LogHelper
+{
+    ImGuiTextBuffer     textBuffer;
+    ImVector<int>       lineOffsets;
+
+    LogHelper()
+    {
+        Clear();
+    }
+
+    void Clear()
+    {
+        textBuffer.clear();
+        lineOffsets.clear();
+        lineOffsets.push_back(0);
+    }
+
+    void AddLog(const char* fmt, ...)
+    {
+        int oldSize = textBuffer.size();
+
+        va_list args;
+        va_start(args, fmt);
+        textBuffer.appendfv(fmt, args);
+        va_end(args);
+
+        for (int newSize = textBuffer.size(); oldSize < newSize; oldSize++)
+        {
+            if (textBuffer[oldSize] == '\n')
+            {
+                lineOffsets.push_back(oldSize + 1);
+            }
+        }
+    }
+
+    void Draw()
+    {
+        ImGui::BeginChild("LogScrolling", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
+
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+
+        const char* bufBegin = textBuffer.begin();
+        const char* bufEnd   = textBuffer.end();
+
+        ImGuiListClipper clipper;
+        clipper.Begin(lineOffsets.Size);
+        while (clipper.Step())
+        {
+            for (int lineNo = clipper.DisplayStart; lineNo < clipper.DisplayEnd; lineNo++)
+            {
+                const char* lineStart = bufBegin + lineOffsets[lineNo];
+                const char* lineEnd   = (lineNo + 1 < lineOffsets.Size) ? (bufBegin + lineOffsets[lineNo + 1] - 1) : bufEnd;
+
+                ImVec4 color;
+                bool hasColor = false;
+                if (strstr(lineStart, "[error]"))
+                {
+                    color = ImVec4(1.0f, 0.4f, 0.4f, 1.0f);
+                    hasColor = true;
+                }
+                else if (strstr(lineStart, "[warning]"))
+                {
+                    color = ImVec4(1.0f, 0.8f, 0.6f, 1.0f);
+                    hasColor = true;
+                }
+
+                if (hasColor)
+                {
+                    ImGui::PushStyleColor(ImGuiCol_Text, color);
+                }
+
+                ImGui::TextUnformatted(lineStart, lineEnd);
+
+                if (hasColor)
+                {
+                    ImGui::PopStyleColor();
+                }
+            }
+        }
+        clipper.End();
+
+        ImGui::PopStyleVar();
+
+        if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
+        {
+            ImGui::SetScrollHereY(1.0f);
+        }
+
+        ImGui::EndChild();
+    }
+};
+
+static LogHelper logHelper;
+
 UISceneView::UISceneView(std::shared_ptr<GLWindow> window)
     : SceneView(window)
     , m_ImGuiIO(nullptr)
@@ -172,6 +266,7 @@ void UISceneView::DrawMenuBar()
             {
                 std::string fileName = WindowsMisc::OpenFile("HDR Files\0*.hdr\0\0");
                 LOGD("HDR file : %s", fileName.c_str());
+                logHelper.AddLog("[error] something went wrong");
             }
 
             if (ImGui::MenuItem("Import GLTF"))
@@ -255,9 +350,9 @@ void UISceneView::DrawMessageUI()
         return;
     }
 
-    char buf[32];
-    ImFormatString(buf, 32, "Doing %d jobs...", JobManager::Count());
-    m_Message = buf;
+    char bufBegin[32];
+    ImFormatString(bufBegin, 32, "Doing %d jobs...", JobManager::Count());
+    m_Message = bufBegin;
 
     static float MsgUIWidth  = 300.0f;
     static float MsgUIHeight = 50.0f;
@@ -296,7 +391,22 @@ void UISceneView::DrawMessageUI()
 
 void UISceneView::DrawAssetsPanel()
 {
-    ImGui::Text("Assets");
+    if (ImGui::BeginTabBar("##Tabs", ImGuiTabBarFlags_None))
+    {
+        if (ImGui::BeginTabItem("Assets"))
+        {
+            ImGui::Text("Assets");
+            ImGui::EndTabItem();
+        }
+
+        if (ImGui::BeginTabItem("Console"))
+        {
+            logHelper.Draw();
+            ImGui::EndTabItem();
+        }
+
+        ImGui::EndTabBar();
+    }
 }
 
 void UISceneView::DrawProjectPanel()
@@ -373,7 +483,7 @@ void UISceneView::OnRender()
     DrawMessageUI();
     DrawAboutUI();
 
-    // ImGui::ShowDemoWindow();
+    ImGui::ShowDemoWindow();
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
