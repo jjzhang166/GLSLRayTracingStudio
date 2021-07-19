@@ -135,7 +135,6 @@ void UISceneView::HandleMoving()
 
 void UISceneView::DrawMenuBar()
 {
-    // TODO:find a way to show close button.
     if (ImGui::BeginMenuBar())
     {
         // menu rect
@@ -206,6 +205,17 @@ void UISceneView::DrawMenuBar()
             ImGui::EndMenu();
         }
 
+        // close button
+        {
+            ImGui::SameLine();
+
+            ImGui::SetCursorPos(ImVec2(m_MenuBarRect.w - 40.0f, m_MenuBarRect.y));
+            if (ImGui::Button("X", ImVec2(40.0f, m_MenuBarRect.h)))
+            {
+                Window()->Close();
+            }
+        }
+
         ImGui::EndMenuBar();
     }
 }
@@ -240,10 +250,10 @@ void UISceneView::DrawPropertyPanel()
 
 void UISceneView::DrawMessageUI()
 {
-    /*if (JobManager::Count() == 0)
+    if (JobManager::Count() == 0)
     {
         return;
-    }*/
+    }
 
     char buf[32];
     ImFormatString(buf, 32, "Doing %d jobs...", JobManager::Count());
@@ -362,6 +372,8 @@ void UISceneView::OnRender()
     // other panel
     DrawMessageUI();
     DrawAboutUI();
+
+    // ImGui::ShowDemoWindow();
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
