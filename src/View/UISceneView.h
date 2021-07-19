@@ -63,10 +63,11 @@ private:
     float           m_PanelPropertyWidth;
     float           m_PanelAssetsWidth;
 
-    Rectangle2D       m_PanelProjectRect;
-    Rectangle2D       m_PanelPropertyRect;
-    Rectangle2D       m_PanelAssetsRect;
-    Rectangle2D       m_PanelScene3DRect;
+    Vector2         m_PanelProjectSize;
+    Vector2         m_PanelPropertySize;
+    Vector2         m_PanelAssetsSize;
+    Rectangle2D     m_PanelScene3DRect;
+    Rectangle2D     m_MenuBarRect;
 
     std::string     m_Message;
 };

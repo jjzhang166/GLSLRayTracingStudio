@@ -12,7 +12,7 @@
 #include "Misc/WindowsMisc.h"
 #include "Misc/JobManager.h"
 
-const static float TitleBarHeight = 19;
+#include <glad/glad.h>
 
 UISceneView::UISceneView(std::shared_ptr<GLWindow> window)
     : SceneView(window)
@@ -66,6 +66,11 @@ bool UISceneView::Init()
     float fontScale = WindowsMisc::GetDPI() / 96.0f;
     io.Fonts->AddFontFromFileTTF("../assets/fonts/Roboto-Light.ttf", 16.0f * fontScale);
 
+    m_MenuBarRect.x = 0;
+    m_MenuBarRect.y = 20 * fontScale;
+    m_MenuBarRect.w = (float)Window()->Width();
+    m_MenuBarRect.h = (float)Window()->Height();
+
     return true;
 }
 
@@ -87,13 +92,26 @@ void UISceneView::OnUpdate()
 
 void UISceneView::UpdatePanelRects()
 {
-    const ImGuiViewport* mainViewport = ImGui::GetMainViewport();
-    const Rectangle2D mainRect(mainViewport->WorkPos.x, mainViewport->WorkPos.y, mainViewport->WorkSize.x, mainViewport->WorkSize.y);
+    auto rect  = Rectangle2D(0, m_MenuBarRect.h, ImGui::GetMainViewport()->WorkSize.x, ImGui::GetMainViewport()->WorkSize.y - m_MenuBarRect.h);
+    auto space = ImGui::GetStyle().ItemSpacing;
 
-    m_PanelProjectRect.Set(mainRect.x, mainRect.y, m_PanelProjectWidth, mainRect.h - m_PanelAssetsWidth - TitleBarHeight);
-    m_PanelPropertyRect.Set(mainRect.w - m_PanelPropertyWidth, mainRect.y, m_PanelPropertyWidth, mainRect.h - m_PanelAssetsWidth - TitleBarHeight);
-    m_PanelAssetsRect.Set(mainRect.x, mainRect.h - m_PanelAssetsWidth, mainRect.w, m_PanelAssetsWidth);
-    m_PanelScene3DRect.Set(m_PanelProjectRect.Right(), mainRect.h - m_PanelProjectRect.h - TitleBarHeight, mainRect.w - m_PanelPropertyWidth - m_PanelProjectWidth, m_PanelProjectRect.h);
+    // project panel
+    m_PanelProjectSize.x  = m_PanelProjectWidth;
+    m_PanelProjectSize.y  = rect.h - m_PanelAssetsWidth;
+
+    // property panel
+    m_PanelPropertySize.x = m_PanelPropertyWidth;
+    m_PanelPropertySize.y = m_PanelProjectSize.y;
+
+    // assets panel
+    m_PanelAssetsSize.x   = rect.w;
+    m_PanelAssetsSize.y   = m_PanelAssetsWidth;
+
+    // scene 3d
+    m_PanelScene3DRect.x = m_PanelProjectSize.x;
+    m_PanelScene3DRect.y = m_PanelAssetsSize.y;
+    m_PanelScene3DRect.w = rect.w - m_PanelProjectSize.x - m_PanelPropertySize.x;
+    m_PanelScene3DRect.h = m_PanelProjectSize.y + space.y;
 }
 
 void UISceneView::HandleMoving()
@@ -118,8 +136,12 @@ void UISceneView::HandleMoving()
 void UISceneView::DrawMenuBar()
 {
     // TODO:find a way to show close button.
-    if (ImGui::BeginMainMenuBar())
+    if (ImGui::BeginMenuBar())
     {
+        // menu rect
+        ImRect rect = ImGui::GetCurrentWindow()->MenuBarRect();
+        m_MenuBarRect.Set(rect.Min.x, rect.Min.y, rect.GetWidth(), rect.GetHeight());
+
         // dragging
         if (ImGui::IsMouseHoveringRect(ImGui::GetCurrentWindow()->MenuBarRect().Min, ImGui::GetCurrentWindow()->MenuBarRect().Max))
         {
@@ -183,9 +205,9 @@ void UISceneView::DrawMenuBar()
 
             ImGui::EndMenu();
         }
-    }
 
-    ImGui::EndMainMenuBar();
+        ImGui::EndMenuBar();
+    }
 }
 
 void UISceneView::DrawAboutUI()
@@ -213,30 +235,15 @@ void UISceneView::DrawAboutUI()
 
 void UISceneView::DrawPropertyPanel()
 {
-    ImGuiWindowFlags windowFlags = 0;
-    windowFlags |= ImGuiWindowFlags_NoMove;
-    windowFlags |= ImGuiWindowFlags_NoCollapse;
-    windowFlags |= ImGuiWindowFlags_NoResize;
-    windowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
-
-    ImGui::SetNextWindowPos(ImVec2(m_PanelPropertyRect.x, m_PanelPropertyRect.y), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(m_PanelPropertyRect.w, m_PanelPropertyRect.h), ImGuiCond_FirstUseEver);
-
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-    ImGui::Begin("Property", nullptr, windowFlags);
-    ImGui::PopStyleVar(3);
-
-    ImGui::End();
+    ImGui::Text("Property");
 }
 
 void UISceneView::DrawMessageUI()
 {
-    if (JobManager::Count() == 0)
+    /*if (JobManager::Count() == 0)
     {
         return;
-    }
+    }*/
 
     char buf[32];
     ImFormatString(buf, 32, "Doing %d jobs...", JobManager::Count());
@@ -246,7 +253,7 @@ void UISceneView::DrawMessageUI()
     static float MsgUIHeight = 50.0f;
 
     ImGui::SetNextWindowSize(ImVec2(MsgUIWidth, MsgUIHeight));
-    ImGui::SetNextWindowPos(ImVec2(m_PanelScene3DRect.Left(), m_PanelScene3DRect.Bottom() - MsgUIHeight + TitleBarHeight));
+    ImGui::SetNextWindowPos(ImVec2(m_PanelScene3DRect.Left(), m_MenuBarRect.Bottom() + 4));
 
     ImGui::SetNextWindowBgAlpha(0.75f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 15.0);
@@ -279,64 +286,83 @@ void UISceneView::DrawMessageUI()
 
 void UISceneView::DrawAssetsPanel()
 {
-    ImGuiWindowFlags windowFlags = 0;
-    windowFlags |= ImGuiWindowFlags_NoMove;
-    windowFlags |= ImGuiWindowFlags_NoCollapse;
-    windowFlags |= ImGuiWindowFlags_NoResize;
-    windowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
-
-    ImGui::SetNextWindowPos(ImVec2(m_PanelAssetsRect.x, m_PanelAssetsRect.y), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(m_PanelAssetsRect.w, m_PanelAssetsRect.h), ImGuiCond_FirstUseEver);
-
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-    ImGui::Begin("Assets", nullptr, windowFlags);
-    ImGui::PopStyleVar(3);
-
-
-    ImGui::End();
+    ImGui::Text("Assets");
 }
 
 void UISceneView::DrawProjectPanel()
 {
-    ImGuiWindowFlags windowFlags = 0;
-    windowFlags |= ImGuiWindowFlags_NoMove;
-    windowFlags |= ImGuiWindowFlags_NoCollapse;
-    windowFlags |= ImGuiWindowFlags_NoResize;
-    windowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
-
-    ImGui::SetNextWindowPos(ImVec2(m_PanelProjectRect.x, m_PanelProjectRect.y), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(m_PanelProjectRect.w, m_PanelProjectRect.h), ImGuiCond_FirstUseEver);
-
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-    ImGui::Begin("Project", nullptr, windowFlags);
-    ImGui::PopStyleVar(3);
-
-
-    ImGui::End();
+    ImGui::Text("Project");
 }
 
 void UISceneView::OnRender()
 {
     HandleMoving();
 
-    DrawAboutUI();
+    // main dummy window
+    ImGuiViewport* mainViewport = ImGui::GetMainViewport();
+    {
+        ImGui::SetNextWindowPos(mainViewport->WorkPos);
+        ImGui::SetNextWindowSize(mainViewport->WorkSize);
+        // All flags to dummy window
+        ImGuiWindowFlags hostWindowFlags = 0;
+        hostWindowFlags |= ImGuiWindowFlags_NoCollapse;
+        hostWindowFlags |= ImGuiWindowFlags_NoResize;
+        hostWindowFlags |= ImGuiWindowFlags_NoMove;
+        hostWindowFlags |= ImGuiWindowFlags_MenuBar;
+        hostWindowFlags |= ImGuiWindowFlags_NoTitleBar;
+        hostWindowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
+        hostWindowFlags |= ImGuiWindowFlags_NoNavFocus;
+        hostWindowFlags |= ImGuiWindowFlags_NoScrollbar;
+        hostWindowFlags |= ImGuiWindowFlags_NoBackground;
+        // Starting dummy window
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+        ImGui::Begin("MainDummyWindow", NULL, hostWindowFlags);
+        ImGui::PopStyleVar(3);
+    }
 
+    // menu bar
     DrawMenuBar();
 
-    DrawProjectPanel();
+    // project panel
+    {
+        ImGui::BeginChild("Project", ImVec2(m_PanelProjectSize.x, m_PanelProjectSize.y), true);
+        DrawProjectPanel();
+        ImGui::EndChild();
+    }
 
-    DrawPropertyPanel();
+    // dummy scene 3d
+    {
+        auto space = ImGui::GetStyle().ItemSpacing;
+        ImGui::SameLine();
+        ImGui::InvisibleButton("ProjectPropertySplitter", ImVec2(m_PanelScene3DRect.w - space.x * 2, m_PanelScene3DRect.h - space.y * 2));
+        ImGui::SameLine();
+    }
 
-    DrawAssetsPanel();
+    // property panel
+    {
+        ImGui::BeginChild("Property", ImVec2(m_PanelPropertySize.x, m_PanelPropertySize.y), true);
+        DrawPropertyPanel();
+        ImGui::EndChild();
+    }
 
+    // assets panel
+    {
+        ImGui::BeginChild("Assets", ImVec2(m_PanelAssetsSize.x, m_PanelAssetsSize.y), true);
+        DrawAssetsPanel();
+        ImGui::EndChild();
+    }
+
+    // end main
+    {
+        ImGui::End();
+    }
+
+    // other panel
     DrawMessageUI();
+    DrawAboutUI();
 
-    //ImGui::ShowDemoWindow();
-    
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }

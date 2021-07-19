@@ -36,10 +36,14 @@ void Scene3DView::OnUpdate()
 void Scene3DView::OnRender()
 {
     auto rect = Window()->GetUISceneView()->ViewPort3D();
+    GLint tx = (GLint)rect.x;
+    GLint ty = (GLint)rect.y;
+    GLsizei tw = (GLsizei)rect.w;
+    GLsizei th = (GLsizei)rect.h;
 
-    glViewport(rect.x, rect.y, rect.w, rect.h);
-    glScissor(rect.x, rect.y, rect.w, rect.h);
-    glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
+    glViewport(tx, ty, tw, th);
+    glScissor(tx, ty, tw, th);
+    glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 

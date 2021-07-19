@@ -39,8 +39,8 @@ int32 main(int32, char**)
         exit(1);
     }
 
-    window->SetUISceneView(uiView);
     window->SetScene3DView(view3D);
+    window->SetUISceneView(uiView);
 
     while (!window->ShouldClose())
     {
