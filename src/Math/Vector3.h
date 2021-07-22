@@ -207,6 +207,9 @@ FORCEINLINE Vector3::Vector3(const Vector2 v, float inZ)
 }
 
 FORCEINLINE Vector3::Vector3()
+    : x(0.0f)
+    , y(0.0f)
+    , z(0.0f)
 {
 
 }

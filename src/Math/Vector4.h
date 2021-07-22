@@ -16,7 +16,7 @@ public:
     float w;
 
 public:
-    
+
     Vector4(const Vector3& inVector, float inW = 1.0f);
 
     explicit Vector4(float inX = 0.0f, float inY = 0.0f, float inZ = 0.0f, float inW = 1.0f);

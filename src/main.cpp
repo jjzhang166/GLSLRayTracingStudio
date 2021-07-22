@@ -21,7 +21,7 @@ int32 main(int32, char**)
     WindowsMisc::GetDesktopResolution(deskSizeW, deskSizeH);
     LOGI("Resolution:%dx%d", deskSizeW, deskSizeH);
 
-    auto window = std::make_shared<GLWindow>(int32(deskSizeW * 0.8f), int32(deskSizeH * 0.8f), "GLSLRayTracingStudio", true);
+    auto window = std::make_shared<GLWindow>(int32(deskSizeW * 0.8f), int32(deskSizeH * 0.8f), "GLSLRayTracingStudio");
     if (!window->Init())
     {
         exit(1);

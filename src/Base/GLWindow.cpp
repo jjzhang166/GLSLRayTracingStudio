@@ -14,13 +14,12 @@ static void OnGLFWErrorCallback(int32 error, const char* description)
     LOGE("Glfw Error %d: %s\n", error, description);
 }
 
-GLWindow::GLWindow(int32 width, int32 height, const char* title, bool resizable)
+GLWindow::GLWindow(int32 width, int32 height, const char* title)
     : m_Width(width)
     , m_Height(height)
     , m_FrameWidth(width)
     , m_FrameHeight(height)
     , m_Title(title)
-    , m_Resizable(resizable)
     , m_Window(nullptr)
     , m_Scene3DView(nullptr)
     , m_UISceneView(nullptr)
@@ -64,6 +63,7 @@ bool GLWindow::Init()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
     // Create window with graphics context
     m_Window = glfwCreateWindow(Width(), Height(), Title(), NULL, NULL);
@@ -115,8 +115,16 @@ bool GLWindow::ShouldClose()
 void GLWindow::Update()
 {
     glfwPollEvents();
-    m_UISceneView->OnUpdate();
-    m_Scene3DView->OnUpdate();
+
+    if (m_UISceneView)
+    {
+        m_UISceneView->OnUpdate();
+    }
+
+    if (m_Scene3DView)
+    {
+        m_Scene3DView->OnUpdate();
+    }
 }
 
 void GLWindow::Render()
@@ -132,8 +140,15 @@ void GLWindow::Render()
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    m_Scene3DView->OnRender();
-    m_UISceneView->OnRender();
+    if (m_Scene3DView)
+    {
+        m_Scene3DView->OnRender();
+    }
+
+    if (m_UISceneView)
+    {
+        m_UISceneView->OnRender();
+    }
 }
 
 void GLWindow::Present()

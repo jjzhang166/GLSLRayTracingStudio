@@ -17,7 +17,7 @@ public:
 
     GLWindow() = delete;
 
-    GLWindow(int32 width, int32 height, const char* title, bool resizable);
+    GLWindow(int32 width, int32 height, const char* title);
 
     ~GLWindow();
 
@@ -87,11 +87,6 @@ public:
         return m_FrameHeight;
     }
 
-    FORCEINLINE bool Resizable() const
-    {
-        return m_Resizable;
-    }
-
     FORCEINLINE GLFWwindow* Window() const
     {
         return m_Window;
@@ -108,7 +103,6 @@ private:
     int32                           m_FrameWidth;
     int32                           m_FrameHeight;
     std::string                     m_Title;
-    bool                            m_Resizable;
     GLFWwindow*                     m_Window;
     std::shared_ptr<Scene3DView>    m_Scene3DView;
     std::shared_ptr<UISceneView>    m_UISceneView;

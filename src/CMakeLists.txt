@@ -5,6 +5,7 @@
     Base/Renderer.h
 )
 set(BASE_SRCS
+    Base/Base.cpp
     Base/SceneView.cpp
     Base/GLWindow.cpp
 )
@@ -105,9 +106,11 @@ set(PARSER_SRCS
 
 set(RENDERER_HDRS
     Renderer/PBRRenderer.h
+    Renderer/RenderScene.h
     Renderer/RayTracingRenderer.h
 )
 set(RENDERER_SRCS
+    Renderer/RenderScene.cpp
     Renderer/PBRRenderer.cpp
     Renderer/RayTracingRenderer.cpp
 )

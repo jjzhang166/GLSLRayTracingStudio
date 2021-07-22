@@ -17,7 +17,7 @@
 struct LogHelper
 {
     ImGuiTextBuffer     textBuffer;
-    ImVector<int>       lineOffsets;
+    ImVector<int32>     lineOffsets;
 
     LogHelper()
     {
@@ -33,14 +33,14 @@ struct LogHelper
 
     void AddLog(const char* fmt, ...)
     {
-        int oldSize = textBuffer.size();
+        int32 oldSize = textBuffer.size();
 
         va_list args;
         va_start(args, fmt);
         textBuffer.appendfv(fmt, args);
         va_end(args);
 
-        for (int newSize = textBuffer.size(); oldSize < newSize; oldSize++)
+        for (int32 newSize = textBuffer.size(); oldSize < newSize; oldSize++)
         {
             if (textBuffer[oldSize] == '\n')
             {
@@ -62,7 +62,7 @@ struct LogHelper
         clipper.Begin(lineOffsets.Size);
         while (clipper.Step())
         {
-            for (int lineNo = clipper.DisplayStart; lineNo < clipper.DisplayEnd; lineNo++)
+            for (int32 lineNo = clipper.DisplayStart; lineNo < clipper.DisplayEnd; lineNo++)
             {
                 const char* lineStart = bufBegin + lineOffsets[lineNo];
                 const char* lineEnd   = (lineNo + 1 < lineOffsets.Size) ? (bufBegin + lineOffsets[lineNo + 1] - 1) : bufEnd;
@@ -148,12 +148,11 @@ bool UISceneView::Init()
     io.ConfigWindowsResizeFromEdges = false;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
-    //io.IniFilename = "../imgui.ini"; 
-    //io.LogFilename = "../imgui.log";
+    io.IniFilename = "../imgui.ini"; 
+    io.LogFilename = "../imgui.log";
     
     ImGui::StyleColorsDark();
 
-    // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(Window()->Window(), true);
     ImGui_ImplOpenGL3_Init("#version 130");
 
@@ -256,29 +255,28 @@ void UISceneView::DrawMenuBar()
                 std::string fileName = WindowsMisc::OpenFile("GLTF Files\0*.gltf;*.glb\0\0");
                 LoadGLTFJob* gltfJob = new LoadGLTFJob(fileName);
                 gltfJob->onCompleteEvent = [=](ThreadTask* task) -> void {
-                    LOGD("GLTF load complete : %s", fileName.c_str());
+                    logHelper.AddLog("GLTF load complete : %s\n", fileName.c_str());
                 };
                 JobManager::AddJob(gltfJob);
-                LOGD("Loading GLTF : %s", fileName.c_str());
+                logHelper.AddLog("Loading GLTF : %s\n", fileName.c_str());
             }
 
             if (ImGui::MenuItem("Open HDR"))
             {
                 std::string fileName = WindowsMisc::OpenFile("HDR Files\0*.hdr\0\0");
-                LOGD("HDR file : %s", fileName.c_str());
-                logHelper.AddLog("[error] something went wrong");
+                logHelper.AddLog("Loading HDR file : %s\n", fileName.c_str());
             }
 
             if (ImGui::MenuItem("Import GLTF"))
             {
                 std::string fileName = WindowsMisc::OpenFile("GLTF Files\0*.gltf;*.glb\0\0");
-                LOGD("GLTF file : %s", fileName.c_str());
+                logHelper.AddLog("Loading GLTF : %s\n", fileName.c_str());
             }
 
             if (ImGui::MenuItem("Import HDR"))
             {
                 std::string fileName = WindowsMisc::OpenFile("HDR Files\0*.hdr\0\0");
-                LOGD("HDR file : %s", fileName.c_str());
+                logHelper.AddLog("Loading HDR file : %s\n", fileName.c_str());
             }
 
             if (ImGui::MenuItem("Quit", "ESC"))
@@ -389,23 +387,29 @@ void UISceneView::DrawMessageUI()
     ImGui::End();
 }
 
-void UISceneView::DrawAssetsPanel()
+void UISceneView::DrawConsolePanel()
 {
-    if (ImGui::BeginTabBar("##Tabs", ImGuiTabBarFlags_None))
+    static bool ShowAssetUI = true;
+
+    if (ImGui::Button("Assets"))
     {
-        if (ImGui::BeginTabItem("Assets"))
-        {
-            ImGui::Text("Assets");
-            ImGui::EndTabItem();
-        }
+        ShowAssetUI = true;
+    }
 
-        if (ImGui::BeginTabItem("Console"))
-        {
-            logHelper.Draw();
-            ImGui::EndTabItem();
-        }
+    ImGui::SameLine();
 
-        ImGui::EndTabBar();
+    if (ImGui::Button("Console"))
+    {
+        ShowAssetUI = false;
+    }
+
+    if (ShowAssetUI)
+    {
+        ImGui::Text("Assets");
+    }
+    else
+    {
+        logHelper.Draw();
     }
 }
 
@@ -469,9 +473,17 @@ void UISceneView::OnRender()
 
     // assets panel
     {
-        ImGui::BeginChild("Assets", ImVec2(m_PanelAssetsSize.x, m_PanelAssetsSize.y), true);
-        DrawAssetsPanel();
-        ImGui::EndChild();
+        ImGuiWindowFlags windowFlags = 0;
+        windowFlags |= ImGuiWindowFlags_NoCollapse;
+        windowFlags |= ImGuiWindowFlags_NoResize;
+        windowFlags |= ImGuiWindowFlags_NoMove;
+        windowFlags |= ImGuiWindowFlags_NoTitleBar;
+        windowFlags |= ImGuiWindowFlags_NoScrollbar;
+        ImGui::SetNextWindowPos(ImVec2(0, ImGui::GetMainViewport()->WorkSize.y - m_PanelAssetsWidth));
+        ImGui::SetNextWindowSize(ImVec2(ImGui::GetMainViewport()->WorkSize.x, m_PanelAssetsWidth));
+        ImGui::Begin("Assets&Console", nullptr, windowFlags);
+        DrawConsolePanel();
+        ImGui::End();
     }
 
     // end main
@@ -479,9 +491,15 @@ void UISceneView::OnRender()
         ImGui::End();
     }
 
-    // other panel
-    DrawMessageUI();
-    DrawAboutUI();
+    // message
+    {
+        DrawMessageUI();
+    }
+
+    // about
+    {
+        DrawAboutUI();
+    }
 
     ImGui::ShowDemoWindow();
 

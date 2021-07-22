@@ -2,7 +2,6 @@
 
 #include "Base/Base.h"
 #include "Job/ThreadTask.h"
-#include "Math/WindowsPlatformAtomics.h"
 
 class LoadGLTFJob : public ThreadTask
 {

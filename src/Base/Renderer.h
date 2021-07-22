@@ -5,14 +5,15 @@
 #include <memory>
 #include <vector>
 
-enum class RendererType
-{
-    PBR = 0,
-    Raytracing = 1
-};
-
 class Renderer
 {
+public:
+    enum RendererType
+    {
+        PBR = 0,
+        Raytracing = 1
+    };
+
 public:
 
     Renderer()

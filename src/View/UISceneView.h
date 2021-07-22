@@ -46,7 +46,7 @@ private:
 
     void DrawPropertyPanel();
 
-    void DrawAssetsPanel();
+    void DrawConsolePanel();
 
     void DrawMessageUI();
 
