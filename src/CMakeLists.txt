@@ -115,6 +115,23 @@ set(RENDERER_SRCS
     Renderer/RayTracingRenderer.cpp
 )
 
+set(CORE_HDRS
+    Core/Material.h
+    Core/Program.h
+    Core/Quad.h
+    Core/Scene.h
+    Core/Shader.h
+    Core/Texture.h
+)
+set(CORE_SRCS
+    Core/Material.cpp
+    Core/Program.cpp
+    Core/Quad.cpp
+    Core/Scene.cpp
+    Core/Shader.cpp
+    Core/Texture.cpp
+)
+
 add_library(engine STATIC
     ${BASE_HDRS}
     ${BASE_SRCS}
@@ -142,6 +159,9 @@ add_library(engine STATIC
 
     ${RENDERER_HDRS}
     ${RENDERER_SRCS}
+
+    ${CORE_HDRS}
+    ${CORE_SRCS}
 )
 
 source_group(src\\Base FILES ${BASE_HDRS} ${BASE_SRCS})
@@ -153,3 +173,4 @@ source_group(src\\Job FILES ${JOB_HDRS} ${JOB_SRCS})
 source_group(src\\Bvh FILES ${BVH_HDRS} ${BVH_SRCS})
 source_group(src\\Parser FILES ${PARSER_HDRS} ${PARSER_SRCS})
 source_group(src\\Renderer FILES ${RENDERER_HDRS} ${RENDERER_SRCS})
+source_group(src\\Core FILES ${CORE_HDRS} ${CORE_SRCS})

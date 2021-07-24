@@ -5,6 +5,7 @@
 #include "View/Scene3DView.h"
 #include "Misc/WindowsMisc.h"
 #include "Misc/JobManager.h"
+#include "Core/Shader.h"
 
 #include <stdio.h>
 #include <stdlib.h>

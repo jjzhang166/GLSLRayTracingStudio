@@ -204,7 +204,7 @@ void UISceneView::UpdatePanelRects()
     m_PanelScene3DRect.x = m_PanelProjectSize.x;
     m_PanelScene3DRect.y = m_PanelAssetsSize.y;
     m_PanelScene3DRect.w = rect.w - m_PanelProjectSize.x - m_PanelPropertySize.x;
-    m_PanelScene3DRect.h = m_PanelProjectSize.y + space.y;
+    m_PanelScene3DRect.h = m_PanelProjectSize.y;
 }
 
 void UISceneView::HandleMoving()
