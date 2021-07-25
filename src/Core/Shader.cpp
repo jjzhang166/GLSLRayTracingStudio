@@ -84,7 +84,7 @@ GLShader::GLShader(const std::string& filePath, GLuint shaderType)
         delete[] info;
         glDeleteShader(m_Object);
         m_Object = 0;
-        printf("Shader compilation error %s\n", msg.c_str());
+        LOGE("Shader compilation error %s\n", msg.c_str());
         throw std::runtime_error(msg);
     }
 }

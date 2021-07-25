@@ -541,26 +541,7 @@ static void ImportMesh(Scene3DPtr scene, tinygltf::Model& model, Object3DPtr obj
 
         // bvh
         {
-            const int32 numTris = (int32)mesh->indices.size() / 3;
-		    std::vector<Bounds3D> bounds(numTris);
-
-		    for (int32 i = 0; i < numTris; ++i)
-		    {
-                uint32 idx0 = mesh->indices[i * 3 + 0];
-                uint32 idx1 = mesh->indices[i * 3 + 1];
-                uint32 idx2 = mesh->indices[i * 3 + 2];
-
-                const auto& p0 = mesh->positions[idx0];
-                const auto& p1 = mesh->positions[idx0];
-                const auto& p2 = mesh->positions[idx0];
-
-			    bounds[i].Expand(p0);
-			    bounds[i].Expand(p1);
-			    bounds[i].Expand(p2);
-		    }
-
-            mesh->bvh = new SplitBvh(2.0f, 64, 0, 0.001f, 2.5f);
-		    mesh->bvh->Build(&bounds[0], numTris);
+            mesh->BuildBVH();
         }
     }
 }
@@ -647,18 +628,18 @@ static void ImportNode(Scene3DPtr scene, tinygltf::Model& model, int32 nodeID, O
     {
         object3D->transform.SetIdentity();
         if (gltfNode.rotation.size() == 4) 
-	    {
-		    Quat quat((float)gltfNode.rotation[0], (float)gltfNode.rotation[1], (float)gltfNode.rotation[2], (float)gltfNode.rotation[3]);
-		    object3D->transform.Append(quat.ToMatrix());
-	    }
-	    if (gltfNode.scale.size() == 3) 
-	    {
-		    object3D->transform.AppendScale(Vector3((float)gltfNode.scale[0], (float)gltfNode.scale[1], (float)gltfNode.scale[2]));
-	    }
-	    if (gltfNode.translation.size() == 3) 
-	    {
-		    object3D->transform.AppendTranslation(Vector3((float)gltfNode.translation[0], (float)gltfNode.translation[1], (float)gltfNode.translation[2]));
-	    }
+        {
+            Quat quat((float)gltfNode.rotation[0], (float)gltfNode.rotation[1], (float)gltfNode.rotation[2], (float)gltfNode.rotation[3]);
+            object3D->transform.Append(quat.ToMatrix());
+        }
+        if (gltfNode.scale.size() == 3) 
+        {
+            object3D->transform.AppendScale(Vector3((float)gltfNode.scale[0], (float)gltfNode.scale[1], (float)gltfNode.scale[2]));
+        }
+        if (gltfNode.translation.size() == 3) 
+        {
+            object3D->transform.AppendTranslation(Vector3((float)gltfNode.translation[0], (float)gltfNode.translation[1], (float)gltfNode.translation[2]));
+        }
     }
 
     // mesh
@@ -727,7 +708,7 @@ static void ImportImages(Scene3DPtr scene, tinygltf::Model& model)
 
 static void ImportTextures(Scene3DPtr scene, tinygltf::Model& model)
 {
-    std::map<int, int32> filters;
+    std::map<int32, int32> filters;
     filters[9728] = GL_NEAREST;  // NEAREST
     filters[9729] = GL_LINEAR;   // LINEAR
     filters[9984] = GL_NEAREST;  // NEAREST_MIPMAP_NEAREST
@@ -735,7 +716,7 @@ static void ImportTextures(Scene3DPtr scene, tinygltf::Model& model)
     filters[9986] = GL_NEAREST;  // NEAREST_MIPMAP_LINEAR
     filters[9987] = GL_LINEAR;   // LINEAR_MIPMAP_LINEAR
     
-    std::map<int, int32> mipmap;
+    std::map<int32, int32> mipmap;
     mipmap[9728] = GL_NEAREST;  // NEAREST
     mipmap[9729] = GL_LINEAR;  // LINEAR
     mipmap[9984] = GL_NEAREST_MIPMAP_NEAREST;  // NEAREST_MIPMAP_NEAREST
@@ -743,7 +724,7 @@ static void ImportTextures(Scene3DPtr scene, tinygltf::Model& model)
     mipmap[9986] = GL_NEAREST_MIPMAP_LINEAR;   // NEAREST_MIPMAP_LINEAR
     mipmap[9987] = GL_LINEAR_MIPMAP_LINEAR;   // LINEAR_MIPMAP_LINEAR
 
-    std::map<int, int32> addressMode;
+    std::map<int32, int32> addressMode;
     addressMode[33071] = GL_CLAMP_TO_EDGE;
     addressMode[33648] = GL_MIRRORED_REPEAT;
     addressMode[10497] = GL_REPEAT;
@@ -784,20 +765,20 @@ static void CalcSceneDimensions(Scene3DPtr scene)
             
             Vector3 corners[8];
             corners[0].Set(mesh->aabb.min.x, mesh->aabb.min.y, mesh->aabb.min.z);
-			corners[1].Set(mesh->aabb.max.x, mesh->aabb.min.y, mesh->aabb.min.z);
-			corners[2].Set(mesh->aabb.min.x, mesh->aabb.max.y, mesh->aabb.min.z);
-			corners[3].Set(mesh->aabb.max.x, mesh->aabb.max.y, mesh->aabb.min.z);
-			corners[4].Set(mesh->aabb.min.x, mesh->aabb.min.y, mesh->aabb.max.z);
-			corners[5].Set(mesh->aabb.max.x, mesh->aabb.min.y, mesh->aabb.max.z);
-			corners[6].Set(mesh->aabb.min.x, mesh->aabb.max.y, mesh->aabb.max.z);
-			corners[7].Set(mesh->aabb.max.x, mesh->aabb.max.y, mesh->aabb.max.z);
+            corners[1].Set(mesh->aabb.max.x, mesh->aabb.min.y, mesh->aabb.min.z);
+            corners[2].Set(mesh->aabb.min.x, mesh->aabb.max.y, mesh->aabb.min.z);
+            corners[3].Set(mesh->aabb.max.x, mesh->aabb.max.y, mesh->aabb.min.z);
+            corners[4].Set(mesh->aabb.min.x, mesh->aabb.min.y, mesh->aabb.max.z);
+            corners[5].Set(mesh->aabb.max.x, mesh->aabb.min.y, mesh->aabb.max.z);
+            corners[6].Set(mesh->aabb.min.x, mesh->aabb.max.y, mesh->aabb.max.z);
+            corners[7].Set(mesh->aabb.max.x, mesh->aabb.max.y, mesh->aabb.max.z);
 
             for (int32 b = 0; b < 8; ++b)
-			{
-				Vector3 vec = world.TransformPosition(corners[b]);
-				scene->bounds.min = Vector3::Min(scene->bounds.min, vec);
-				scene->bounds.max = Vector3::Max(scene->bounds.max, vec);
-			}
+            {
+                Vector3 vec = world.TransformPosition(corners[b]);
+                scene->bounds.min = Vector3::Min(scene->bounds.min, vec);
+                scene->bounds.max = Vector3::Max(scene->bounds.max, vec);
+            }
         }
     }
 }
@@ -817,15 +798,17 @@ static void FitSceneCamera(Scene3DPtr scene)
     node->name   = "DefaultCamera";
     node->camera = camera;
     node->parent = scene->rootNode;
+    camera->node = node;
+
     scene->rootNode->children.push_back(node);
     scene->nodes.push_back(node);
     scene->cameras.push_back(camera);
 
     // update position
     Vector3 center = scene->bounds.Center();
-	Vector3 extent = scene->bounds.Extents();
-	Vector3 eye    = Vector3(center.x, center.y, center.z - extent.Size() * 1.0f);
-	Vector3 at     = center;
+    Vector3 extent = scene->bounds.Extents();
+    Vector3 eye    = Vector3(center.x, center.y, center.z - extent.Size() * 1.0f);
+    Vector3 at     = center;
     node->transform.SetPosition(eye);
     node->transform.LookAt(center);
 }

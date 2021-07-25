@@ -11,6 +11,7 @@
 
 struct Light;
 struct Image;
+struct HDRImage;
 struct Texture;
 struct Material;
 struct Mesh;
@@ -24,6 +25,8 @@ typedef std::shared_ptr<Light>      LightPtr;
 typedef std::vector<LightPtr>       LightArray;
 typedef std::shared_ptr<Image>      ImagePtr;
 typedef std::vector<ImagePtr>       ImageArray;
+typedef std::shared_ptr<HDRImage>   HDRImagePtr;
+typedef std::vector<HDRImagePtr>    HDRImageArray;
 typedef std::shared_ptr<Texture>    TexturePtr;
 typedef std::vector<TexturePtr>     TextureArray;
 typedef std::shared_ptr<Material>   MaterialPtr;
@@ -51,6 +54,13 @@ enum class DebugMode
     ERayDir    = 11
 };
 
+struct RendererNode
+{
+    Matrix4x4   transform;
+    int32       meshID = -1;
+    int32       materialID = -1;
+};
+
 struct Light
 {
     enum LightType
@@ -62,26 +72,36 @@ struct Light
 
     Object3DPtr     node = nullptr;
 
-    Vector3         direction = Vector3(0.0f, 0.0f, 1.0f);
-    float           range = 0.0f;
+    int32           type = LightType::DIRECTIONAL;
 
     Vector3         color = Vector3(1.0f, 1.0f, 1.0f);
     float           intensity = 1.0f;
 
-    Vector3         position = Vector3(0.0f, 0.0f, 0.0f);
-    float           innerCone = 0.0f;
+    Vector3         direction = Vector3(0.0f, 0.0f, 1.0f);
 
+    float           range = 0.0f;
+    Vector3         position = Vector3(0.0f, 0.0f, 0.0f);
+
+    float           innerCone = 0.0f;
     float           outerCone = 0.0f;
-    int32           type = LightType::DIRECTIONAL;
 };
 
 struct Image
 {
     std::string         name;
     int32               width = 0;
-	int32               height = 0;
-	int32               comp = 4;
-	std::vector<uint8>  rgba;
+    int32               height = 0;
+    int32               comp = 4;
+    std::vector<uint8>  rgba;
+};
+
+struct HDRImage
+{
+    int32               width;
+    int32               height;
+    int32               component;
+    std::vector<float>  hdrRGBA;
+    std::vector<float>  envRGBA;
 };
 
 struct Texture
@@ -168,14 +188,30 @@ struct Mesh
     std::vector<Vector2>    uvs;
     std::vector<uint32>     tangents;
     std::vector<uint32>     colors;
-};
 
-struct MeshInstance
-{
-    std::string             name;
-    Matrix4x4	            transform;
-    int32                   meshID = -1;
-    int32                   materialID = -1;
+    void BuildBVH()
+    {
+        const int32 numTris = (int32)indices.size() / 3;
+        std::vector<Bounds3D> bounds(numTris);
+
+        for (int32 i = 0; i < numTris; ++i)
+        {
+            uint32 idx0 = indices[i * 3 + 0];
+            uint32 idx1 = indices[i * 3 + 1];
+            uint32 idx2 = indices[i * 3 + 2];
+
+            const auto& p0 = positions[idx0];
+            const auto& p1 = positions[idx0];
+            const auto& p2 = positions[idx0];
+
+            bounds[i].Expand(p0);
+            bounds[i].Expand(p1);
+            bounds[i].Expand(p2);
+        }
+
+        bvh = new SplitBvh(2.0f, 64, 0, 0.001f, 2.5f);
+        bvh->Build(&bounds[0], numTris);
+    }
 };
 
 class Camera

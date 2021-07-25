@@ -38,10 +38,7 @@ THE SOFTWARE.
 class BvhTranslator
 {
 public:
-
-    // Constructor
-    BvhTranslator() = default;
-
+    
     struct Node
     {
         int32 leftIndex;
@@ -49,28 +46,39 @@ public:
         int32 leaf;
     };
 
+public:
+
+    // Constructor
+    BvhTranslator() = default;
+
     void ProcessBLAS();
+
     void ProcessTLAS();
-    void UpdateTLAS(const Bvh* topLevelBvh, const std::vector<MeshInstance>& instances);
-    void Process(const Bvh* topLevelBvh, const std::vector<Mesh*>& meshes, const std::vector<MeshInstance>& instances);
+
+    void UpdateTLAS(std::shared_ptr<Bvh> bvh, const std::vector<RendererNode>& instances);
+
+    void Process(std::shared_ptr<Bvh> bvh, const MeshArray& meshes, const std::vector<RendererNode>& instances);
     
 private:
+
     int32 ProcessBLASNodes(const Bvh::Node* root);
+
     int32 ProcessTLASNodes(const Bvh::Node* root);
 
 public:
-    std::vector<Vector3> bboxmin;
-    std::vector<Vector3> bboxmax;
-    std::vector<Node> nodes;
-    int32 nodeTexWidth;
-    int32 topLevelIndexPackedXY = 0;
-    int32 topLevelIndex = 0;
+
+    std::vector<Vector3>        bboxmin;
+    std::vector<Vector3>        bboxmax;
+    std::vector<Node>           nodes;
+    int32                       nodeTexWidth;
+    int32                       topLevelIndexPackedXY = 0;
+    int32                       topLevelIndex = 0;
 
 private:
-    int32 curNode = 0;
-    int32 curTriIndex = 0;
-    const Bvh* TLBvh;
-    std::vector<int32> bvhRootStartIndices;
-    std::vector<MeshInstance> meshInstances;
-    std::vector<Mesh*> meshes;
+    int32                       curNode = 0;
+    int32                       curTriIndex = 0;
+    std::shared_ptr<Bvh>        TLBvh;
+    std::vector<int32>          bvhRootStartIndices;
+    std::vector<RendererNode>   meshInstances;
+    MeshArray                   meshes;
 };

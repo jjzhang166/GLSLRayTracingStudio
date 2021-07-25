@@ -25,6 +25,7 @@ THE SOFTWARE.
     Code is modfied for this project
 */
 
+#include "Math/Math.h"
 #include "Math/Bounds3D.h"
 #include "Bvh/BvhTranslator.h"
 
@@ -97,8 +98,7 @@ int32 BvhTranslator::ProcessTLASNodes(const Bvh::Node* node)
 void BvhTranslator::ProcessBLAS()
 {
     int32 nodeCnt = 0;
-
-    for (int32 i = 0; i < meshes.size(); ++i)
+    for (size_t i = 0; i < meshes.size(); ++i)
     {
         nodeCnt += meshes[i]->bvh->m_Nodecnt;
     }
@@ -107,19 +107,18 @@ void BvhTranslator::ProcessBLAS()
 
     // reserve space for top level nodes
     nodeCnt += 2 * (int32)meshInstances.size();
-    nodeTexWidth = (int32)(sqrt(nodeCnt) + 1);
+    nodeTexWidth = (int32)(MMath::Sqrt(nodeCnt) + 1);
 
     // Resize to power of 2
     bboxmin.resize(nodeTexWidth * nodeTexWidth);
     bboxmax.resize(nodeTexWidth * nodeTexWidth);
     nodes.resize(nodeTexWidth * nodeTexWidth);
 
-    int32 bvhRootIndex = 0;
     curTriIndex = 0;
-
-    for (int32 i = 0; i < meshes.size(); i++)
+    int32 bvhRootIndex = 0;
+    for (size_t i = 0; i < meshes.size(); i++)
     {
-        Mesh* mesh = meshes[i];
+        MeshPtr mesh = meshes[i];
         curNode = bvhRootIndex;
 
         bvhRootStartIndices.push_back(bvhRootIndex);
@@ -137,7 +136,7 @@ void BvhTranslator::ProcessTLAS()
     ProcessTLASNodes(TLBvh->m_Root);
 }
 
-void BvhTranslator::UpdateTLAS(const Bvh* topLevelBvh, const std::vector<MeshInstance>& sceneInstances)
+void BvhTranslator::UpdateTLAS(std::shared_ptr<Bvh> topLevelBvh, const std::vector<RendererNode>& sceneInstances)
 {
     TLBvh = topLevelBvh;
     curNode = topLevelIndex;
@@ -145,7 +144,7 @@ void BvhTranslator::UpdateTLAS(const Bvh* topLevelBvh, const std::vector<MeshIns
     ProcessTLASNodes(TLBvh->m_Root);
 }
 
-void BvhTranslator::Process(const Bvh* topLevelBvh, const std::vector<Mesh*>& sceneMeshes, const std::vector<MeshInstance>& sceneInstances)
+void BvhTranslator::Process(std::shared_ptr<Bvh> topLevelBvh, const MeshArray& sceneMeshes, const std::vector<RendererNode>& sceneInstances)
 {
     TLBvh = topLevelBvh;
     meshes = sceneMeshes;

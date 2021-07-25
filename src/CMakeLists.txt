@@ -95,6 +95,7 @@ set(PARSER_HDRS
     Parser/stb_image.h
     Parser/tiny_gltf.h
     Parser/GLTFParser.h
+    Parser/HDRParser.h
 )
 set(PARSER_SRCS
     Parser/stb_image_resize.cpp
@@ -102,6 +103,7 @@ set(PARSER_SRCS
     Parser/stb_image.cpp
     Parser/tiny_gltf.cpp
     Parser/GLTFParser.cpp
+    Parser/HDRParser.cpp
 )
 
 set(RENDERER_HDRS
@@ -116,7 +118,6 @@ set(RENDERER_SRCS
 )
 
 set(CORE_HDRS
-    Core/Material.h
     Core/Program.h
     Core/Quad.h
     Core/Scene.h
@@ -124,7 +125,6 @@ set(CORE_HDRS
     Core/Texture.h
 )
 set(CORE_SRCS
-    Core/Material.cpp
     Core/Program.cpp
     Core/Quad.cpp
     Core/Scene.cpp
