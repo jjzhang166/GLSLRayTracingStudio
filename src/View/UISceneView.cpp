@@ -108,8 +108,8 @@ struct LogHelper
 
 static LogHelper logHelper;
 
-UISceneView::UISceneView(std::shared_ptr<GLWindow> window)
-    : SceneView(window)
+UISceneView::UISceneView(std::shared_ptr<GLWindow> window, std::shared_ptr<GLScene> scene)
+    : SceneView(window, scene)
     , m_ImGuiIO(nullptr)
     , m_MenuBarMousePos(0.0f, 0.0f)
     , m_MenuBarDragging(false)

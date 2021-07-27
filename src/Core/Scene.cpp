@@ -5,145 +5,150 @@
 #include <iostream>
 #include <algorithm>
 
-Scene::Scene() 
+GLScene::GLScene() 
 {
     
 }
 
-Scene::~Scene() 
+GLScene::~GLScene() 
 {
 
 }
 
-void Scene::SetCamera(CameraPtr inCamera)
+void GLScene::AddScene(Scene3DPtr scene3D)
 {
-    camera = inCamera;
+
 }
 
-int32 Scene::AddMesh(MeshPtr mesh)
+void GLScene::SetCamera(CameraPtr inCamera)
 {
-    int32 id = (int32)meshes.size();
-    meshes.push_back(mesh);
+    m_Camera = inCamera;
+}
+
+int32 GLScene::AddMesh(MeshPtr mesh)
+{
+    int32 id = (int32)m_Meshes.size();
+    m_Meshes.push_back(mesh);
     return id;
 }
 
-int32 Scene::AddImage(ImagePtr image)
+int32 GLScene::AddImage(ImagePtr image)
 {
-    int32 id = (int32)images.size();
-    images.push_back(image);
+    int32 id = (int32)m_Images.size();
+    m_Images.push_back(image);
     return id;
 }
 
-int32 Scene::AddMaterial(MaterialPtr material)
+int32 GLScene::AddMaterial(MaterialPtr material)
 {
-    int32 id = (int32)materials.size();
-    materials.push_back(material);
+    int32 id = (int32)m_Materials.size();
+    m_Materials.push_back(material);
     return id;
 }
 
-int32 Scene::AddRenderer(int32 mesh, int32 material, const Matrix4x4& transform)
+int32 GLScene::AddRenderer(int32 mesh, int32 material, const Matrix4x4& transform)
 {
     RendererNode render;
     render.materialID = material;
     render.meshID     = mesh;
     render.transform  = transform;
 
-    int32 id = (int32)renderers.size();
-    renderers.push_back(render);
+    int32 id = (int32)m_Renderers.size();
+    m_Renderers.push_back(render);
     return id;
 }
 
-int32 Scene::AddLight(LightPtr light)
+int32 GLScene::AddLight(LightPtr light)
 {
-    int32 id = (int32)lights.size();
-    lights.push_back(light);
+    int32 id = (int32)m_Lights.size();
+    m_Lights.push_back(light);
     return id;
 }
 
-int32 Scene::AddHDR(HDRImagePtr hdr)
+int32 GLScene::AddHDR(HDRImagePtr hdr)
 {
-    int32 id = (int32)hdrs.size();
-    hdrs.push_back(hdr);
+    int32 id = (int32)m_Hdrs.size();
+    m_Hdrs.push_back(hdr);
     return id;
 }
 
-void Scene::CreateAccelerationStructures()
+void GLScene::CreateAccelerationStructures()
 {
     CreateBLAS();
     CreateTLAS();
 
     // Flatten BVH
-    bvhTranslator = std::make_shared<BvhTranslator>();
-    bvhTranslator->Process(sceneBvh, meshes, renderers);
+    m_BvhTranslator = std::make_shared<BvhTranslator>();
+    m_BvhTranslator->Process(m_SceneBvh, m_Meshes, m_Renderers);
 
     // Copy mesh data
     int32 verticesCnt = 0;
-    for (size_t i = 0; i < meshes.size(); ++i)
+    for (size_t i = 0; i < m_Meshes.size(); ++i)
     {
-        // Copy indices from BVH and not from Mesh
-        int32 numIndices = (int32)meshes[i]->bvh->GetNumIndices();
-        const int32* triIndices = meshes[i]->bvh->GetIndices();
+        // Copy m_Indices from BVH and not from Mesh
+        int32 numIndices = (int32)m_Meshes[i]->bvh->GetNumIndices();
+        const int32* triIndices = m_Meshes[i]->bvh->GetIndices();
 
         for (int32 j = 0; j < numIndices; ++j)
         {
-            indices.push_back(triIndices[j] + verticesCnt);
+            m_Indices.push_back(triIndices[j] + verticesCnt);
         }
 
-        verticesCnt += (int32)meshes[i]->positions.size();
+        verticesCnt += (int32)m_Meshes[i]->positions.size();
 
-        positions.insert(positions.begin(), meshes[i]->positions.begin(), meshes[i]->positions.end());
-        normals.insert(normals.begin(), meshes[i]->normals.begin(), meshes[i]->normals.end());
-        uvs.insert(uvs.begin(), meshes[i]->uvs.begin(), meshes[i]->uvs.end());
-        tangents.insert(tangents.begin(), meshes[i]->tangents.begin(), meshes[i]->tangents.end());
-        colors.insert(colors.begin(), meshes[i]->colors.begin(), meshes[i]->colors.end());
+        m_Positions.insert(m_Positions.begin(), m_Meshes[i]->positions.begin(), m_Meshes[i]->positions.end());
+        m_Normals.insert(m_Normals.begin(), m_Meshes[i]->normals.begin(), m_Meshes[i]->normals.end());
+        m_Uvs.insert(m_Uvs.begin(), m_Meshes[i]->uvs.begin(), m_Meshes[i]->uvs.end());
+        m_Tangents.insert(m_Tangents.begin(), m_Meshes[i]->tangents.begin(), m_Meshes[i]->tangents.end());
+        m_Colors.insert(m_Colors.begin(), m_Meshes[i]->colors.begin(), m_Meshes[i]->colors.end());
     }
 
     // Resize to power of 2
     // TODO:pack data
-    indicesTexWidth = (int32)(MMath::Sqrt(indices.size()) + 1);
-    triDataTexWidth = (int32)(MMath::Sqrt(positions.size()) + 1);
+    m_IndicesTexWidth = (int32)(MMath::Sqrt((float)m_Indices.size()) + 1);
+    m_TriDataTexWidth = (int32)(MMath::Sqrt((float)m_Positions.size()) + 1);
 
-    indices.resize(indicesTexWidth * indicesTexWidth);
-    positions.resize(triDataTexWidth * triDataTexWidth);
-    normals.resize(triDataTexWidth * triDataTexWidth);
-    uvs.resize(triDataTexWidth * triDataTexWidth);
-    tangents.resize(triDataTexWidth * triDataTexWidth);
-    colors.resize(triDataTexWidth * triDataTexWidth);
+    m_Indices.resize(m_IndicesTexWidth * m_IndicesTexWidth);
+    m_Positions.resize(m_TriDataTexWidth * m_TriDataTexWidth);
+    m_Normals.resize(m_TriDataTexWidth * m_TriDataTexWidth);
+    m_Uvs.resize(m_TriDataTexWidth * m_TriDataTexWidth);
+    m_Tangents.resize(m_TriDataTexWidth * m_TriDataTexWidth);
+    m_Colors.resize(m_TriDataTexWidth * m_TriDataTexWidth);
 
-    for (size_t i = 0; i < indices.size(); ++i)
+    for (size_t i = 0; i < m_Indices.size(); ++i)
     {
-        indices[i] = ((indices[i] % triDataTexWidth) << 12) | (indices[i] / triDataTexWidth);
+        m_Indices[i] = ((m_Indices[i] % m_TriDataTexWidth) << 12) | (m_Indices[i] / m_TriDataTexWidth);
     }
 
     // Copy transforms
-    transforms.resize(renderers.size());
-    for (int32 i = 0; i < renderers.size(); i++) 
+    m_Transforms.resize(m_Renderers.size());
+    for (int32 i = 0; i < m_Renderers.size(); i++) 
     {
-        transforms[i] = renderers[i].transform;
+        m_Transforms[i] = m_Renderers[i].transform;
     }
 }
 
-void Scene::RebuildInstancesData()
+void GLScene::RebuildInstancesData()
 {
     CreateTLAS();
 
-    bvhTranslator->UpdateTLAS(sceneBvh, renderers);
+    m_BvhTranslator->UpdateTLAS(m_SceneBvh, m_Renderers);
 
-    for (int32 i = 0; i < renderers.size(); i++) 
+    for (int32 i = 0; i < m_Renderers.size(); i++) 
     {
-        transforms[i] = renderers[i].transform;
+        m_Transforms[i] = m_Renderers[i].transform;
     }
 }
 
-void Scene::CreateTLAS()
+void GLScene::CreateTLAS()
 {
     std::vector<Bounds3D> bounds;
-    bounds.resize(renderers.size());
+    bounds.resize(m_Renderers.size());
 
-    for (size_t i = 0; i < renderers.size(); i++)
+    for (size_t i = 0; i < m_Renderers.size(); i++)
     {
-        Bounds3D aabb    = meshes[renderers[i].meshID]->bvh->Bounds();
-        Matrix4x4 matrix = renderers[i].transform;
+        Bounds3D aabb    = m_Meshes[m_Renderers[i].meshID]->bvh->Bounds();
+        Matrix4x4 matrix = m_Renderers[i].transform;
         Vector3 minBound = aabb.min;
         Vector3 maxBound = aabb.max;
 
@@ -163,17 +168,17 @@ void Scene::CreateTLAS()
         bounds[i].max = Vector3::Max(xa, xb) + Vector3::Max(ya, yb) + Vector3::Max(za, zb) + translation;
     }
 
-    sceneBvh = std::make_shared<Bvh>(10.0f, 64, false);
-    sceneBvh->Build(&bounds[0], (int32)bounds.size());
+    m_SceneBvh = std::make_shared<Bvh>(10.0f, 64, false);
+    m_SceneBvh->Build(&bounds[0], (int32)bounds.size());
 
-    sceneBounds = sceneBvh->Bounds();
+    m_SceneBounds = m_SceneBvh->Bounds();
 }
 
-void Scene::CreateBLAS()
+void GLScene::CreateBLAS()
 {
-    for (size_t i = 0; i < meshes.size(); ++i)
+    for (size_t i = 0; i < m_Meshes.size(); ++i)
     {
-        auto mesh = meshes[i];
+        auto mesh = m_Meshes[i];
         if (mesh->bvh)
         {
             continue;

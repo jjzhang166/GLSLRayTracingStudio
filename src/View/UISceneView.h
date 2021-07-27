@@ -13,7 +13,7 @@ class UISceneView : public SceneView
 {
 public:
 
-    UISceneView(std::shared_ptr<GLWindow> window);
+    UISceneView(std::shared_ptr<GLWindow> window, std::shared_ptr<GLScene> scene);
 
     virtual ~UISceneView();
 

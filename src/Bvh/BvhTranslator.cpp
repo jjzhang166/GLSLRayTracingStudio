@@ -107,7 +107,7 @@ void BvhTranslator::ProcessBLAS()
 
     // reserve space for top level nodes
     nodeCnt += 2 * (int32)meshInstances.size();
-    nodeTexWidth = (int32)(MMath::Sqrt(nodeCnt) + 1);
+    nodeTexWidth = (int32)(MMath::Sqrt((float)nodeCnt) + 1);
 
     // Resize to power of 2
     bboxmin.resize(nodeTexWidth * nodeTexWidth);

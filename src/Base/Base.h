@@ -21,6 +21,7 @@ struct Scene3D;
 class  Camera;
 
 typedef std::shared_ptr<Scene3D>    Scene3DPtr;
+typedef std::vector<Scene3DPtr>     Scene3DArray;
 typedef std::shared_ptr<Light>      LightPtr;
 typedef std::vector<LightPtr>       LightArray;
 typedef std::shared_ptr<Image>      ImagePtr;

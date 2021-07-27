@@ -9,7 +9,7 @@ class Scene3DView : public SceneView
 {
 public:
 
-    Scene3DView(std::shared_ptr<GLWindow> window);
+    Scene3DView(std::shared_ptr<GLWindow> window, std::shared_ptr<GLScene> scene);
 
     virtual ~Scene3DView();
 

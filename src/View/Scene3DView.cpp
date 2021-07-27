@@ -5,8 +5,8 @@
 
 #include <glad/glad.h>
 
-Scene3DView::Scene3DView(std::shared_ptr<GLWindow> window)
-    : SceneView(window)
+Scene3DView::Scene3DView(std::shared_ptr<GLWindow> window, std::shared_ptr<GLScene> scene)
+    : SceneView(window, scene)
 {
 
 }

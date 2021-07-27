@@ -108,11 +108,9 @@ set(PARSER_SRCS
 
 set(RENDERER_HDRS
     Renderer/PBRRenderer.h
-    Renderer/RenderScene.h
     Renderer/RayTracingRenderer.h
 )
 set(RENDERER_SRCS
-    Renderer/RenderScene.cpp
     Renderer/PBRRenderer.cpp
     Renderer/RayTracingRenderer.cpp
 )

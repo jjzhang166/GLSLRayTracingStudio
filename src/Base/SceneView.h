@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "Common/Common.h"
+#include "Core/Scene.h"
 
 #include <memory>
 
@@ -12,7 +13,7 @@ public:
 
     SceneView() = delete;
 
-    SceneView(std::shared_ptr<GLWindow> window);
+    SceneView(std::shared_ptr<GLWindow> window, std::shared_ptr<GLScene> scene);
 
     virtual ~SceneView();
 
@@ -29,7 +30,13 @@ public:
         return m_Window;
     }
 
+    FORCEINLINE std::shared_ptr<GLScene> Scene() const
+    {
+        return m_Scene;
+    }
+
 protected:
 
     std::shared_ptr<GLWindow>       m_Window;
+    std::shared_ptr<GLScene>        m_Scene;
 };

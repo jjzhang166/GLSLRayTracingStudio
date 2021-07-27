@@ -1,4 +1,6 @@
-﻿#include "Base/Base.h"
+﻿#pragma once
+
+#include "Base/Base.h"
 
 #include "Bvh/Bvh.h"
 #include "Bvh/BvhTranslator.h"
@@ -11,12 +13,12 @@
 
 #include <string>
 
-class Scene
+class GLScene
 {
 public:
-    Scene();
+    GLScene();
 
-    virtual ~Scene();
+    virtual ~GLScene();
 
     void SetCamera(CameraPtr camera);
 
@@ -32,6 +34,8 @@ public:
 
     int32 AddHDR(HDRImagePtr hdr);
 
+    void AddScene(Scene3DPtr scene3D);
+
     void CreateAccelerationStructures();
 
     void RebuildInstancesData();
@@ -42,29 +46,33 @@ private:
 
     void CreateTLAS();
 
-public:
+protected:
 
-    MeshArray                       meshes;
-    MaterialArray                   materials;
-    LightArray                      lights;
-    ImageArray                      images;
-    HDRImageArray                   hdrs;
-    std::vector<RendererNode>       renderers;
-    CameraPtr					    camera;
+    MeshArray                       m_Meshes;
+    MaterialArray                   m_Materials;
+    LightArray                      m_Lights;
+    ImageArray                      m_Images;
+    HDRImageArray                   m_Hdrs;
+    std::vector<RendererNode>       m_Renderers;
+    CameraPtr					    m_Camera;
 
-    std::vector<uint32>             indices;
-    std::vector<Vector3>            positions;
-    std::vector<uint32>             normals;
-    std::vector<Vector2>            uvs;
-    std::vector<uint32>             tangents;
-    std::vector<uint32>             colors;
-    std::vector<Matrix4x4>          transforms;
+    std::vector<uint32>             m_Indices;
+    std::vector<Vector3>            m_Positions;
+    std::vector<uint32>             m_Normals;
+    std::vector<Vector2>            m_Uvs;
+    std::vector<uint32>             m_Tangents;
+    std::vector<uint32>             m_Colors;
+    std::vector<Matrix4x4>          m_Transforms;
 
-    int32					        indicesTexWidth;
-    int32						    triDataTexWidth;
+    int32					        m_IndicesTexWidth;
+    int32						    m_TriDataTexWidth;
 
-    std::shared_ptr<BvhTranslator>  bvhTranslator;
-    std::shared_ptr<Bvh>            sceneBvh;
+    std::shared_ptr<BvhTranslator>  m_BvhTranslator;
+    std::shared_ptr<Bvh>            m_SceneBvh;
 
-    Bounds3D					    sceneBounds;
+    Bounds3D					    m_SceneBounds;
+    Scene3DArray                    m_Scenes;
 };
+
+typedef std::shared_ptr<GLScene> GLScenePtr;
+typedef std::vector<GLScenePtr>  GLSceneArray;
