@@ -1,23 +1,66 @@
 ﻿#pragma once
 
+#include "Common/Common.h"
+
 #include <stdio.h>
+#include <stdarg.h>
 
-#define _DEBUG_PREFIX_NAME(A) #A
-#define DEBUG_PREFIX_NAME(A) _DEBUG_PREFIX_NAME(A)
+struct LogTrace
+{
+	enum
+	{
+		MAX_STRING_SIZE = 4096
+	};
 
-#define DEBUG_LOG_PREFIX    [ DEBUG ]:
-#define INFO_LOG_PREFIX     [ INFO \40]:
-#define WARNING_LOG_PREFIX  [WARNING]:
-#define ERROR_LOG_PREFIX    [ ERROR ]:
-#define FAULT_LOG_PREFIX    [ FAULT ]:
+	enum Type
+	{
+		Debug,
+		Info,
+		Warning,
+		Error,
+		Fatal
+	};
+
+	static int32 GetVarArgs(ANSICHAR* dest, int32 destSize, const ANSICHAR*& fmt, va_list argPtr);
+
+	static int32 FormatString(ANSICHAR* dest, const ANSICHAR* fmt, ...)
+	{
+		va_list ap;
+		va_start(ap, fmt);
+		int32 result = GetVarArgs(dest, MAX_STRING_SIZE, fmt, ap);
+		if (result >= MAX_STRING_SIZE)
+		{
+			result = -1;
+		}
+		va_end(ap);
+
+		return result;
+	}
+
+	template <typename FmtType, typename... Types>
+	static void LogMessage(Type type, const FmtType& fmt, Types... args)
+	{
+		ANSICHAR buffer[MAX_STRING_SIZE];
+		int32 index = FormatString(buffer, fmt, args...);
+		if (index > -1)
+		{
+			buffer[index] = '\0';
+		}
+
+		LogToConsole(type, buffer);
+	}
+	
+	static void LogToConsole(Type type, const ANSICHAR* msg);
+};
 
 #if defined(DEBUG) || defined(_DEBUG)
-    #define LOGD(...)  do { fprintf(stdout, "%s", DEBUG_PREFIX_NAME(DEBUG_LOG_PREFIX)); fprintf(stdout, __VA_ARGS__); fprintf(stdout, "\n"); } while (0)
+	#define LOGD(...)  do { LogTrace::LogMessage(LogTrace::Debug, __VA_ARGS__); } while (0)
+	#define LOGI(...)  do { LogTrace::LogMessage(LogTrace::Info,  __VA_ARGS__); } while (0)
 #else
-    #define LOGD(...)  do {  } while (0)
+	#define LOGD(...)  do { } while (0)
+	#define LOGI(...)  do { } while (0)
 #endif
 
-#define LOGI(...)  do { fprintf(stdout, "%s",    DEBUG_PREFIX_NAME(INFO_LOG_PREFIX)); fprintf(stdout, __VA_ARGS__); fprintf(stdout, "\n"); } while (0)
-#define LOGW(...)  do { fprintf(stdout, "%s", DEBUG_PREFIX_NAME(WARNING_LOG_PREFIX)); fprintf(stdout, __VA_ARGS__); fprintf(stdout, "\n"); } while (0)
-#define LOGE(...)  do { fprintf(stdout, "%s",   DEBUG_PREFIX_NAME(ERROR_LOG_PREFIX)); fprintf(stdout, __VA_ARGS__); fprintf(stdout, "\n"); } while (0)
-#define LOGF(...)  do { fprintf(stdout, "%s",   DEBUG_PREFIX_NAME(FAULT_LOG_PREFIX)); fprintf(stdout, __VA_ARGS__); fprintf(stdout, "\n"); } while (0)
+#define LOGW(...)  do { LogTrace::LogMessage(LogTrace::Warning, __VA_ARGS__); } while (0)
+#define LOGE(...)  do { LogTrace::LogMessage(LogTrace::Error,   __VA_ARGS__); } while (0)
+#define LOGF(...)  do { LogTrace::LogMessage(LogTrace::Fatal,   __VA_ARGS__); } while (0)

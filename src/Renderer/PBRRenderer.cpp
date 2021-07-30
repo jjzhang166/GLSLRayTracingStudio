@@ -7,7 +7,7 @@ void PBRRenderer::Init()
 
 void PBRRenderer::Destroy()
 {
-
+    m_Scene = nullptr;
 }
 
 void PBRRenderer::Update()
@@ -20,7 +20,7 @@ void PBRRenderer::Render()
 
 }
 
-void PBRRenderer::AddScene(std::shared_ptr<Scene3D> scene)
+void PBRRenderer::SetScene(GLScenePtr scene)
 {
-
+    m_Scene = scene;
 }

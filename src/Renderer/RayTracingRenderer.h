@@ -1,6 +1,5 @@
 ﻿#pragma once
 
-#include "Base/Base.h"
 #include "Base/Renderer.h"
 
 #include <vector>
@@ -32,9 +31,9 @@ public:
 
     void Render() override;
 
-    void AddScene(std::shared_ptr<Scene3D> scene) override;
+    void SetScene(GLScenePtr scene) override;
 
 private:
 
-    std::vector<Scene3DPtr>     m_Scenes;
+    GLScenePtr  m_Scene;
 };

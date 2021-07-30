@@ -4,6 +4,10 @@
 #include "Math/Vector2.h"
 #include "Math/Rectangle2D.h"
 
+#include "View/Icons.h"
+#include "View/Components/LogPanel.h"
+#include "View/Components/MainMenuBar.h"
+
 #include <memory>
 
 struct ImGuiIO;
@@ -13,7 +17,7 @@ class UISceneView : public SceneView
 {
 public:
 
-    UISceneView(std::shared_ptr<GLWindow> window);
+    UISceneView(std::shared_ptr<GLWindow> window, std::shared_ptr<GLScene> scene);
 
     virtual ~UISceneView();
 
@@ -36,37 +40,29 @@ private:
 
     void UpdatePanelRects();
 
-    void DrawMenuBar();
-
-    void DrawAboutUI();
-
-    void HandleMoving();
-
     void DrawProjectPanel();
 
     void DrawPropertyPanel();
 
-    void DrawAssetsPanel();
+    void DrawConsolePanel();
 
     void DrawMessageUI();
 
 private:
 
     ImGuiIO*        m_ImGuiIO;
-
-    Vector2         m_MenuBarMousePos;
-    bool            m_MenuBarDragging;
-
-    bool            m_ShowingAbout;
+    Icons           m_Icons;
 
     float           m_PanelProjectWidth;
     float           m_PanelPropertyWidth;
     float           m_PanelAssetsWidth;
 
-    Rectangle2D       m_PanelProjectRect;
-    Rectangle2D       m_PanelPropertyRect;
-    Rectangle2D       m_PanelAssetsRect;
-    Rectangle2D       m_PanelScene3DRect;
+    Vector2         m_PanelProjectSize;
+    Vector2         m_PanelPropertySize;
+    Vector2         m_PanelAssetsSize;
+    Rectangle2D     m_PanelScene3DRect;
+
+    MainMenuBar     m_MainMenuBar;
 
     std::string     m_Message;
 };

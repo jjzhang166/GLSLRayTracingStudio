@@ -2,7 +2,6 @@
 
 #include "Base/Base.h"
 #include "Job/ThreadTask.h"
-#include "Math/WindowsPlatformAtomics.h"
 
 class LoadGLTFJob : public ThreadTask
 {
@@ -17,6 +16,11 @@ public:
     virtual void Abandon() override
     {
 
+    }
+
+    FORCEINLINE Scene3DPtr GetScene() const
+    {
+        return m_Scene3D;
     }
 
 private:

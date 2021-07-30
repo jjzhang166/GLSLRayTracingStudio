@@ -1,18 +1,19 @@
 ﻿#pragma once
 
-#include "Base/Base.h"
+#include "Core/Scene.h"
 
 #include <memory>
 #include <vector>
 
-enum class RendererType
-{
-    PBR = 0,
-    Raytracing = 1
-};
-
 class Renderer
 {
+public:
+    enum RendererType
+    {
+        PBR = 0,
+        Raytracing = 1
+    };
+
 public:
 
     Renderer()
@@ -35,7 +36,7 @@ public:
 
     virtual void Render() = 0;
 
-    virtual void AddScene(std::shared_ptr<Scene3D> scene) = 0;
+    virtual void SetScene(GLScenePtr scene) = 0;
 };
 
 typedef std::shared_ptr<Renderer> RendererPtr;

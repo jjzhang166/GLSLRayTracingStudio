@@ -20,7 +20,7 @@ void RayTracingRenderer::Render()
 
 }
 
-void RayTracingRenderer::AddScene(std::shared_ptr<Scene3D> scene)
+void RayTracingRenderer::SetScene(GLScenePtr scene)
 {
-
+    m_Scene = scene;
 }

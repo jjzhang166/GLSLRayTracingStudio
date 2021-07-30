@@ -5,6 +5,7 @@
     Base/Renderer.h
 )
 set(BASE_SRCS
+    Base/Base.cpp
     Base/SceneView.cpp
     Base/GLWindow.cpp
 )
@@ -15,7 +16,7 @@ set(COMMON_HDRS
     Common/Log.h
 )
 set(COMMON_SRCS
-
+    Common/Log.cpp
 )
 
 set(MATH_HDRS
@@ -40,12 +41,23 @@ set(MATH_SRCS
 )
 
 set(VIEW_HDRS
+    View/Icons.h
     View/UISceneView.h
     View/Scene3DView.h
 )
 set(VIEW_SRCS
+    View/Icons.cpp
     View/UISceneView.cpp
     View/Scene3DView.cpp
+)
+
+set(VIEW_COMPONENTS_HDRS
+    View/Components/LogPanel.h
+    View/Components/MainMenuBar.h
+)
+set(VIEW_COMPONENTS_SRCS
+    View/Components/LogPanel.cpp
+    View/Components/MainMenuBar.cpp
 )
 
 set(MISC_HDRS
@@ -94,6 +106,7 @@ set(PARSER_HDRS
     Parser/stb_image.h
     Parser/tiny_gltf.h
     Parser/GLTFParser.h
+    Parser/HDRParser.h
 )
 set(PARSER_SRCS
     Parser/stb_image_resize.cpp
@@ -101,6 +114,7 @@ set(PARSER_SRCS
     Parser/stb_image.cpp
     Parser/tiny_gltf.cpp
     Parser/GLTFParser.cpp
+    Parser/HDRParser.cpp
 )
 
 set(RENDERER_HDRS
@@ -112,6 +126,21 @@ set(RENDERER_SRCS
     Renderer/RayTracingRenderer.cpp
 )
 
+set(CORE_HDRS
+    Core/Program.h
+    Core/Quad.h
+    Core/Scene.h
+    Core/Shader.h
+    Core/Texture.h
+)
+set(CORE_SRCS
+    Core/Program.cpp
+    Core/Quad.cpp
+    Core/Scene.cpp
+    Core/Shader.cpp
+    Core/Texture.cpp
+)
+
 add_library(engine STATIC
     ${BASE_HDRS}
     ${BASE_SRCS}
@@ -121,6 +150,8 @@ add_library(engine STATIC
 
     ${VIEW_HDRS}
     ${VIEW_SRCS}
+    ${VIEW_COMPONENTS_HDRS}
+    ${VIEW_COMPONENTS_SRCS}
 
     ${MISC_HDRS}
     ${MISC_SRCS}
@@ -139,14 +170,19 @@ add_library(engine STATIC
 
     ${RENDERER_HDRS}
     ${RENDERER_SRCS}
+
+    ${CORE_HDRS}
+    ${CORE_SRCS}
 )
 
 source_group(src\\Base FILES ${BASE_HDRS} ${BASE_SRCS})
 source_group(src\\Common FILES ${COMMON_HDRS} ${COMMON_SRCS})
 source_group(src\\View FILES ${VIEW_HDRS} ${VIEW_SRCS})
+source_group(src\\View\\Components FILES ${VIEW_COMPONENTS_HDRS} ${VIEW_COMPONENTS_SRCS})
 source_group(src\\Misc FILES ${MISC_HDRS} ${MISC_SRCS})
 source_group(src\\Math FILES ${MATH_SRCS} ${MATH_HDRS})
 source_group(src\\Job FILES ${JOB_HDRS} ${JOB_SRCS})
 source_group(src\\Bvh FILES ${BVH_HDRS} ${BVH_SRCS})
 source_group(src\\Parser FILES ${PARSER_HDRS} ${PARSER_SRCS})
 source_group(src\\Renderer FILES ${RENDERER_HDRS} ${RENDERER_SRCS})
+source_group(src\\Core FILES ${CORE_HDRS} ${CORE_SRCS})
