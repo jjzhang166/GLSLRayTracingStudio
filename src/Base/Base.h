@@ -270,7 +270,7 @@ public:
 
     void SetTransform(const Matrix4x4& world);
 
-    const Matrix4x4& GetTransform(bool local = true);
+    Matrix4x4 GetTransform(bool local = true);
 
     void Perspective(float fovy, float width, float height, float zNear, float zFar);
 

@@ -349,7 +349,7 @@ void Camera::SetTransform(const Matrix4x4& world)
     node->transform = world;
 }
 
-const Matrix4x4& Camera::GetTransform(bool local)
+Matrix4x4 Camera::GetTransform(bool local)
 {
     if (local)
     {
