@@ -2,10 +2,10 @@
 
 Quad::Quad()
 {
-    glGenVertexArrays(1, &vao);
-    glGenBuffers(1, &vbo);
-    glBindVertexArray(vao);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glGenVertexArrays(1, &m_Vao);
+    glGenBuffers(1, &m_Vbo);
+    glBindVertexArray(m_Vao);
+    glBindBuffer(GL_ARRAY_BUFFER, m_Vbo);
 
     // Vertex data
     float vertices[] =
@@ -31,7 +31,7 @@ Quad::Quad()
 void Quad::Draw(GLProgramPtr program)
 {
     program->Active();
-    glBindVertexArray(vao);
+    glBindVertexArray(m_Vao);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
     program->Deactive();

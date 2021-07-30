@@ -357,7 +357,7 @@ const Matrix4x4& Camera::GetTransform(bool local)
     }
     else
     {
-        node->GlobalTransform();
+        return node->GlobalTransform();
     }
 }
 

@@ -36,11 +36,16 @@ public:
 
     void AddScene(Scene3DPtr scene3D);
 
+    FORCEINLINE CameraPtr GetCamera() const
+    {
+        return m_Camera;
+    }
+
+private:
+
     void CreateAccelerationStructures();
 
     void RebuildInstancesData();
-
-private:
 
     void CreateBLAS();
 

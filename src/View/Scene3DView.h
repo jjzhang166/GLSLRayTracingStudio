@@ -1,7 +1,10 @@
 ﻿#pragma once
 
 #include "Base/SceneView.h"
-#include "Base/Renderer.h"
+
+#include "Renderer/PBRRenderer.h"
+#include "Renderer/RayTracingRenderer.h"
+
 #include "Math/Vector2.h"
 #include "Math/Rectangle2D.h"
 
@@ -21,10 +24,9 @@ public:
 
     void OnRender() override;
 
-    void AddRenderer(RendererPtr renderer);
-
 private:
 
-    RendererArray   m_Renderers;
-
+    std::shared_ptr<PBRRenderer>        m_PBRRenderer;
+    std::shared_ptr<RayTracingRenderer> m_RayRenderer;
+    
 };

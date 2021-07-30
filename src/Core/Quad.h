@@ -14,6 +14,6 @@ public:
 
 private:
 
-    GLuint vao;
-    GLuint vbo;
+    GLuint m_Vao;
+    GLuint m_Vbo;
 };

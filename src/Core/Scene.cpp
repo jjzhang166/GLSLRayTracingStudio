@@ -17,7 +17,8 @@ GLScene::~GLScene()
 
 void GLScene::AddScene(Scene3DPtr scene3D)
 {
-
+    m_Scenes.push_back(scene3D);
+    // TODO:add scene resouces
 }
 
 void GLScene::SetCamera(CameraPtr inCamera)

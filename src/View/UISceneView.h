@@ -6,6 +6,7 @@
 
 #include "View/Icons.h"
 #include "View/Components/LogPanel.h"
+#include "View/Components/MainMenuBar.h"
 
 #include <memory>
 
@@ -39,12 +40,6 @@ private:
 
     void UpdatePanelRects();
 
-    void DrawMenuBar();
-
-    void DrawAboutUI();
-
-    void HandleMoving();
-
     void DrawProjectPanel();
 
     void DrawPropertyPanel();
@@ -58,11 +53,6 @@ private:
     ImGuiIO*        m_ImGuiIO;
     Icons           m_Icons;
 
-    Vector2         m_MenuBarMousePos;
-    bool            m_MenuBarDragging;
-
-    bool            m_ShowingAbout;
-
     float           m_PanelProjectWidth;
     float           m_PanelPropertyWidth;
     float           m_PanelAssetsWidth;
@@ -71,7 +61,8 @@ private:
     Vector2         m_PanelPropertySize;
     Vector2         m_PanelAssetsSize;
     Rectangle2D     m_PanelScene3DRect;
-    Rectangle2D     m_MenuBarRect;
+
+    MainMenuBar     m_MainMenuBar;
 
     std::string     m_Message;
 };

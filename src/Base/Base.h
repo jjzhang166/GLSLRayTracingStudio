@@ -180,7 +180,7 @@ struct Mesh
 {
     std::string             name;
     Object3DPtr             node = nullptr;
-    Bvh*                    bvh = nullptr;
+    std::shared_ptr<Bvh>    bvh = nullptr;
     int32                   material = -1;
     Bounds3D                aabb = Bounds3D(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 0.0f));
     std::vector<uint32>     indices;
@@ -210,7 +210,7 @@ struct Mesh
             bounds[i].Expand(p2);
         }
 
-        bvh = new SplitBvh(2.0f, 64, 0, 0.001f, 2.5f);
+        bvh = std::make_shared<SplitBvh>(2.0f, 64, 0, 0.001f, 2.5f);
         bvh->Build(&bounds[0], numTris);
     }
 };

@@ -53,9 +53,11 @@ set(VIEW_SRCS
 
 set(VIEW_COMPONENTS_HDRS
     View/Components/LogPanel.h
+    View/Components/MainMenuBar.h
 )
 set(VIEW_COMPONENTS_SRCS
     View/Components/LogPanel.cpp
+    View/Components/MainMenuBar.cpp
 )
 
 set(MISC_HDRS

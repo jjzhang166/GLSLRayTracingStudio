@@ -47,7 +47,7 @@ int32 BvhTranslator::ProcessBLASNodes(const Bvh::Node* node)
     {
         nodes[curNode].leftIndex  = curTriIndex + node->startidx;
         nodes[curNode].rightIndex = node->numprims;
-        nodes[curNode].leaf = 1;
+        nodes[curNode].leaf       = 1;
     }
     else
     {
@@ -75,12 +75,12 @@ int32 BvhTranslator::ProcessTLASNodes(const Bvh::Node* node)
     if (node->type == Bvh::NodeType::kLeaf)
     {
         int32 instanceIndex = TLBvh->m_PackedIndices[node->startidx];
-        int32 meshIndex  = meshInstances[instanceIndex].meshID;
-        int32 materialID = meshInstances[instanceIndex].materialID;
+        int32 meshIndex     = meshInstances[instanceIndex].meshID;
+        int32 materialID    = meshInstances[instanceIndex].materialID;
 
         nodes[curNode].leftIndex  = (bvhRootStartIndices[meshIndex] % nodeTexWidth) << 12 | (bvhRootStartIndices[meshIndex] / nodeTexWidth);
         nodes[curNode].rightIndex = materialID;
-        nodes[curNode].leaf = -instanceIndex - 1;
+        nodes[curNode].leaf       = -instanceIndex - 1;
     }
     else
     {
@@ -94,7 +94,7 @@ int32 BvhTranslator::ProcessTLASNodes(const Bvh::Node* node)
 
     return index;
 }
-    
+
 void BvhTranslator::ProcessBLAS()
 {
     int32 nodeCnt = 0;

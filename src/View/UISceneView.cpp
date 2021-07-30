@@ -8,7 +8,6 @@
 #include "Base/GLWindow.h"
 #include "View/UISceneView.h"
 #include "View/Components/LogPanel.h"
-#include "Parser/GLTFParser.h"
 #include "Misc/FileMisc.h"
 #include "Misc/WindowsMisc.h"
 #include "Misc/JobManager.h"
@@ -18,14 +17,12 @@
 UISceneView::UISceneView(std::shared_ptr<GLWindow> window, std::shared_ptr<GLScene> scene)
     : SceneView(window, scene)
     , m_ImGuiIO(nullptr)
-    , m_MenuBarMousePos(0.0f, 0.0f)
-    , m_MenuBarDragging(false)
-
-    , m_ShowingAbout(false)
 
     , m_PanelProjectWidth(300.0f)
     , m_PanelPropertyWidth(300.0f)
     , m_PanelAssetsWidth(200.0f)
+
+    , m_MainMenuBar(this)
 {
 
 }
@@ -63,15 +60,11 @@ bool UISceneView::Init()
     ImGui_ImplGlfw_InitForOpenGL(Window()->Window(), true);
     ImGui_ImplOpenGL3_Init("#version 130");
 
+    // set font
     float fontScale = WindowsMisc::GetDPI() / 96.0f;
     io.Fonts->AddFontFromFileTTF("../assets/fonts/Roboto-Light.ttf", 16.0f * fontScale);
 
-    m_MenuBarRect.x = 0;
-    m_MenuBarRect.y = 20 * fontScale;
-    m_MenuBarRect.w = (float)Window()->Width();
-    m_MenuBarRect.h = (float)Window()->Height();
-
-    // icons
+    // load icons
     m_Icons.Load();
 
     return true;
@@ -97,162 +90,28 @@ void UISceneView::OnUpdate()
 
 void UISceneView::UpdatePanelRects()
 {
-    auto rect  = Rectangle2D(0, m_MenuBarRect.h, ImGui::GetMainViewport()->WorkSize.x, ImGui::GetMainViewport()->WorkSize.y - m_MenuBarRect.h);
+    Rectangle2D menuBarRect = m_MainMenuBar.GetMenuBarRect();
+
+    auto rect  = Rectangle2D(0, menuBarRect.h, ImGui::GetMainViewport()->WorkSize.x, ImGui::GetMainViewport()->WorkSize.y - menuBarRect.h);
     auto space = ImGui::GetStyle().ItemSpacing;
 
     // project panel
-    m_PanelProjectSize.x  = m_PanelProjectWidth;
-    m_PanelProjectSize.y  = rect.h - m_PanelAssetsWidth;
+    m_PanelProjectSize.x = m_PanelProjectWidth;
+    m_PanelProjectSize.y = rect.h - m_PanelAssetsWidth;
 
     // property panel
     m_PanelPropertySize.x = m_PanelPropertyWidth;
     m_PanelPropertySize.y = m_PanelProjectSize.y;
 
     // assets panel
-    m_PanelAssetsSize.x   = rect.w;
-    m_PanelAssetsSize.y   = m_PanelAssetsWidth;
+    m_PanelAssetsSize.x = rect.w;
+    m_PanelAssetsSize.y = m_PanelAssetsWidth;
 
     // scene 3d
     m_PanelScene3DRect.x = m_PanelProjectSize.x;
     m_PanelScene3DRect.y = m_PanelAssetsSize.y;
     m_PanelScene3DRect.w = rect.w - m_PanelProjectSize.x - m_PanelPropertySize.x;
     m_PanelScene3DRect.h = m_PanelProjectSize.y;
-}
-
-void UISceneView::HandleMoving()
-{
-    if (ImGui::IsMouseDown(0) == false)
-    {
-        m_MenuBarDragging = false;
-    }
-
-    if (m_MenuBarDragging)
-    {
-        Vector2 currPos = WindowsMisc::GetMousePos();
-        Vector2 delta   = currPos - m_MenuBarMousePos;
-        if (delta.Size() >= 0.01f)
-        {
-            m_Window->MoveWindow(delta);
-            m_MenuBarMousePos = currPos;
-        }
-    }
-}
-
-void UISceneView::DrawMenuBar()
-{
-    if (ImGui::BeginMenuBar())
-    {
-        // menu rect
-        ImRect rect = ImGui::GetCurrentWindow()->MenuBarRect();
-        m_MenuBarRect.Set(rect.Min.x, rect.Min.y, rect.GetWidth(), rect.GetHeight());
-
-        // dragging
-        if (ImGui::IsMouseHoveringRect(ImGui::GetCurrentWindow()->MenuBarRect().Min, ImGui::GetCurrentWindow()->MenuBarRect().Max))
-        {
-            if (ImGui::IsMouseDown(0))
-            {
-                if (m_MenuBarDragging == false)
-                {
-                    m_MenuBarDragging = true;
-                    m_MenuBarMousePos = WindowsMisc::GetMousePos();
-                }
-            }
-        }
-
-        // File menu items
-        if (ImGui::BeginMenu("File"))
-        {
-            if (ImGui::MenuItem("Open GLTF"))
-            {
-                std::string fileName = WindowsMisc::OpenFile("GLTF Files\0*.gltf;*.glb\0\0");
-                LoadGLTFJob* gltfJob = new LoadGLTFJob(fileName);
-                gltfJob->onCompleteEvent = [=](ThreadTask* task) -> void {
-                    //m_LogPanel.AddLog("GLTF load complete : %s\n", fileName.c_str());
-                };
-                JobManager::AddJob(gltfJob);
-                //m_LogPanel.AddLog("Loading GLTF : %s\n", fileName.c_str());
-            }
-
-            if (ImGui::MenuItem("Open HDR"))
-            {
-                std::string fileName = WindowsMisc::OpenFile("HDR Files\0*.hdr\0\0");
-                //m_LogPanel.AddLog("Loading HDR file : %s\n", fileName.c_str());
-            }
-
-            if (ImGui::MenuItem("Import GLTF"))
-            {
-                std::string fileName = WindowsMisc::OpenFile("GLTF Files\0*.gltf;*.glb\0\0");
-                //m_LogPanel.AddLog("Loading GLTF : %s\n", fileName.c_str());
-            }
-
-            if (ImGui::MenuItem("Import HDR"))
-            {
-                std::string fileName = WindowsMisc::OpenFile("HDR Files\0*.hdr\0\0");
-                //m_LogPanel.AddLog("Loading HDR file : %s\n", fileName.c_str());
-            }
-
-            if (ImGui::MenuItem("Test"))
-            {
-                LOGI("Test\n");
-                LOGE("Test2\n");
-                LOGW("Test3\n");
-            }
-
-            if (ImGui::MenuItem("Quit", "ESC"))
-            {
-                m_Window->Close();
-            }
-
-            ImGui::EndMenu();
-        }
-
-        // Help items
-        if (ImGui::BeginMenu("Help"))
-        {
-            if (ImGui::MenuItem("About"))
-            {
-                m_ShowingAbout = true;
-            }
-
-            ImGui::EndMenu();
-        }
-
-        // close button
-        {
-            ImGui::SameLine();
-
-            ImGui::SetCursorPos(ImVec2(m_MenuBarRect.w - 40.0f, m_MenuBarRect.y));
-            if (ImGui::Button("X", ImVec2(40.0f, m_MenuBarRect.h)))
-            {
-                Window()->Close();
-            }
-        }
-
-        ImGui::EndMenuBar();
-    }
-}
-
-void UISceneView::DrawAboutUI()
-{
-    if (m_ShowingAbout)
-    {
-        ImGuiWindowFlags windowFlags = 0;
-        windowFlags |= ImGuiWindowFlags_NoScrollbar;
-        windowFlags |= ImGuiWindowFlags_NoResize;
-        windowFlags |= ImGuiWindowFlags_NoCollapse;
-        windowFlags |= ImGuiWindowFlags_NoMove;
-
-        ImGui::OpenPopup("About");
-        if (ImGui::BeginPopupModal("About", &m_ShowingAbout, windowFlags))
-        {
-            ImGui::Text("GLSLRayTracingStudio %s", APP_VERSION);
-            ImGui::Separator();
-            ImGui::Text("By Boblchen contributors.");
-            ImGui::Text("GLSLRayTracingStudio is licensed under the MIT License, see LICENSE for more information.");
-            ImGui::Text("Github:https://github.com/BobLChen/GLSLRayTracingStudio");
-            ImGui::EndPopup();
-        }
-    }
 }
 
 void UISceneView::DrawPropertyPanel()
@@ -267,6 +126,8 @@ void UISceneView::DrawMessageUI()
         return;
     }
 
+    Rectangle2D menuBarRect = m_MainMenuBar.GetMenuBarRect();
+
     char bufBegin[32];
     ImFormatString(bufBegin, 32, "Doing %d jobs...", JobManager::Count());
     m_Message = bufBegin;
@@ -275,7 +136,7 @@ void UISceneView::DrawMessageUI()
     static float MsgUIHeight = 50.0f;
 
     ImGui::SetNextWindowSize(ImVec2(MsgUIWidth, MsgUIHeight));
-    ImGui::SetNextWindowPos(ImVec2(m_PanelScene3DRect.Left(), m_MenuBarRect.Bottom() + 4));
+    ImGui::SetNextWindowPos(ImVec2(m_PanelScene3DRect.Left(), menuBarRect.Bottom() + 4));
 
     ImGui::SetNextWindowBgAlpha(0.75f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 15.0);
@@ -339,8 +200,8 @@ void UISceneView::DrawProjectPanel()
 
 void UISceneView::OnRender()
 {
-    HandleMoving();
-
+    m_MainMenuBar.HandleMoving();
+    
     // main dummy window
     ImGuiViewport* mainViewport = ImGui::GetMainViewport();
     {
@@ -366,7 +227,7 @@ void UISceneView::OnRender()
     }
 
     // menu bar
-    DrawMenuBar();
+    m_MainMenuBar.Draw();
 
     // project panel
     {
@@ -413,11 +274,6 @@ void UISceneView::OnRender()
     // message
     {
         DrawMessageUI();
-    }
-
-    // about
-    {
-        DrawAboutUI();
     }
 
     ImGui::ShowDemoWindow();

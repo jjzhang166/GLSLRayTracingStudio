@@ -36,7 +36,6 @@ public:
 
 protected:
 
-
     GLTexture* m_Icons[IconName::ICON_COUNT];
 
 };

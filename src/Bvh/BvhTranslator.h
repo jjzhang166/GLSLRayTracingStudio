@@ -75,6 +75,7 @@ public:
     int32                       topLevelIndex = 0;
 
 private:
+
     int32                       curNode = 0;
     int32                       curTriIndex = 0;
     std::shared_ptr<Bvh>        TLBvh;
