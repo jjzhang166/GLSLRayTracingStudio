@@ -14,14 +14,14 @@
 
 int32 main(int32, char**)
 {
-    LOGD("Hello GLSLRayTracingStudio");
+    LOGD("Hello GLSLRayTracingStudio\n");
 
     JobManager::Init(8);
 
     int32 deskSizeW = 0;
     int32 deskSizeH = 0;
     WindowsMisc::GetDesktopResolution(deskSizeW, deskSizeH);
-    LOGI("Resolution:%dx%d", deskSizeW, deskSizeH);
+    LOGI("Resolution:%dx%d\n", deskSizeW, deskSizeH);
 
     auto scene = std::make_shared<GLScene>();
 

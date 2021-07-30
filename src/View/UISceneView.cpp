@@ -7,106 +7,13 @@
 #include "Math/Math.h"
 #include "Base/GLWindow.h"
 #include "View/UISceneView.h"
+#include "View/Components/LogPanel.h"
 #include "Parser/GLTFParser.h"
 #include "Misc/FileMisc.h"
 #include "Misc/WindowsMisc.h"
 #include "Misc/JobManager.h"
 
 #include <glad/glad.h>
-
-struct LogHelper
-{
-    ImGuiTextBuffer     textBuffer;
-    ImVector<int32>     lineOffsets;
-
-    LogHelper()
-    {
-        Clear();
-    }
-
-    void Clear()
-    {
-        textBuffer.clear();
-        lineOffsets.clear();
-        lineOffsets.push_back(0);
-    }
-
-    void AddLog(const char* fmt, ...)
-    {
-        int32 oldSize = textBuffer.size();
-
-        va_list args;
-        va_start(args, fmt);
-        textBuffer.appendfv(fmt, args);
-        va_end(args);
-
-        for (int32 newSize = textBuffer.size(); oldSize < newSize; oldSize++)
-        {
-            if (textBuffer[oldSize] == '\n')
-            {
-                lineOffsets.push_back(oldSize + 1);
-            }
-        }
-    }
-
-    void Draw()
-    {
-        ImGui::BeginChild("LogScrolling", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
-
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-
-        const char* bufBegin = textBuffer.begin();
-        const char* bufEnd   = textBuffer.end();
-
-        ImGuiListClipper clipper;
-        clipper.Begin(lineOffsets.Size);
-        while (clipper.Step())
-        {
-            for (int32 lineNo = clipper.DisplayStart; lineNo < clipper.DisplayEnd; lineNo++)
-            {
-                const char* lineStart = bufBegin + lineOffsets[lineNo];
-                const char* lineEnd   = (lineNo + 1 < lineOffsets.Size) ? (bufBegin + lineOffsets[lineNo + 1] - 1) : bufEnd;
-
-                ImVec4 color;
-                bool hasColor = false;
-                if (strstr(lineStart, "[error]"))
-                {
-                    color = ImVec4(1.0f, 0.4f, 0.4f, 1.0f);
-                    hasColor = true;
-                }
-                else if (strstr(lineStart, "[warning]"))
-                {
-                    color = ImVec4(1.0f, 0.8f, 0.6f, 1.0f);
-                    hasColor = true;
-                }
-
-                if (hasColor)
-                {
-                    ImGui::PushStyleColor(ImGuiCol_Text, color);
-                }
-
-                ImGui::TextUnformatted(lineStart, lineEnd);
-
-                if (hasColor)
-                {
-                    ImGui::PopStyleColor();
-                }
-            }
-        }
-        clipper.End();
-
-        ImGui::PopStyleVar();
-
-        if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
-        {
-            ImGui::SetScrollHereY(1.0f);
-        }
-
-        ImGui::EndChild();
-    }
-};
-
-static LogHelper logHelper;
 
 UISceneView::UISceneView(std::shared_ptr<GLWindow> window, std::shared_ptr<GLScene> scene)
     : SceneView(window, scene)
@@ -164,11 +71,16 @@ bool UISceneView::Init()
     m_MenuBarRect.w = (float)Window()->Width();
     m_MenuBarRect.h = (float)Window()->Height();
 
+    // icons
+    m_Icons.Load();
+
     return true;
 }
 
 void UISceneView::Destroy()
 {
+    m_Icons.Destroy();
+
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
@@ -255,28 +167,35 @@ void UISceneView::DrawMenuBar()
                 std::string fileName = WindowsMisc::OpenFile("GLTF Files\0*.gltf;*.glb\0\0");
                 LoadGLTFJob* gltfJob = new LoadGLTFJob(fileName);
                 gltfJob->onCompleteEvent = [=](ThreadTask* task) -> void {
-                    logHelper.AddLog("GLTF load complete : %s\n", fileName.c_str());
+                    //m_LogPanel.AddLog("GLTF load complete : %s\n", fileName.c_str());
                 };
                 JobManager::AddJob(gltfJob);
-                logHelper.AddLog("Loading GLTF : %s\n", fileName.c_str());
+                //m_LogPanel.AddLog("Loading GLTF : %s\n", fileName.c_str());
             }
 
             if (ImGui::MenuItem("Open HDR"))
             {
                 std::string fileName = WindowsMisc::OpenFile("HDR Files\0*.hdr\0\0");
-                logHelper.AddLog("Loading HDR file : %s\n", fileName.c_str());
+                //m_LogPanel.AddLog("Loading HDR file : %s\n", fileName.c_str());
             }
 
             if (ImGui::MenuItem("Import GLTF"))
             {
                 std::string fileName = WindowsMisc::OpenFile("GLTF Files\0*.gltf;*.glb\0\0");
-                logHelper.AddLog("Loading GLTF : %s\n", fileName.c_str());
+                //m_LogPanel.AddLog("Loading GLTF : %s\n", fileName.c_str());
             }
 
             if (ImGui::MenuItem("Import HDR"))
             {
                 std::string fileName = WindowsMisc::OpenFile("HDR Files\0*.hdr\0\0");
-                logHelper.AddLog("Loading HDR file : %s\n", fileName.c_str());
+                //m_LogPanel.AddLog("Loading HDR file : %s\n", fileName.c_str());
+            }
+
+            if (ImGui::MenuItem("Test"))
+            {
+                LOGI("Test\n");
+                LOGE("Test2\n");
+                LOGW("Test3\n");
             }
 
             if (ImGui::MenuItem("Quit", "ESC"))
@@ -409,7 +328,7 @@ void UISceneView::DrawConsolePanel()
     }
     else
     {
-        logHelper.Draw();
+        Logger().Draw();
     }
 }
 
@@ -502,6 +421,20 @@ void UISceneView::OnRender()
     }
 
     ImGui::ShowDemoWindow();
+
+    {
+        ImGui::PushID(0);
+        ImVec2 size = ImVec2(32.0f, 32.0f);
+        ImVec2 uv0  = ImVec2(0.0f,  0.0f);
+        ImVec2 uv1  = ImVec2(1.0f,  1.0f);
+        ImVec4 bgCol = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+        ImVec4 tintCol = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+        ImGui::Image((ImTextureID)(intptr_t)m_Icons.GetIcon(IconName::ICON_CAMERA)->GetTexture(), size, uv0, uv1, tintCol, bgCol);
+
+        ImGui::PopID();
+        ImGui::SameLine();
+    }
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

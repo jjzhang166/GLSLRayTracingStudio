@@ -4,6 +4,9 @@
 #include "Math/Vector2.h"
 #include "Math/Rectangle2D.h"
 
+#include "View/Icons.h"
+#include "View/Components/LogPanel.h"
+
 #include <memory>
 
 struct ImGuiIO;
@@ -53,6 +56,7 @@ private:
 private:
 
     ImGuiIO*        m_ImGuiIO;
+    Icons           m_Icons;
 
     Vector2         m_MenuBarMousePos;
     bool            m_MenuBarDragging;

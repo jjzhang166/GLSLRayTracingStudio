@@ -16,7 +16,7 @@ set(COMMON_HDRS
     Common/Log.h
 )
 set(COMMON_SRCS
-
+    Common/Log.cpp
 )
 
 set(MATH_HDRS
@@ -41,12 +41,21 @@ set(MATH_SRCS
 )
 
 set(VIEW_HDRS
+    View/Icons.h
     View/UISceneView.h
     View/Scene3DView.h
 )
 set(VIEW_SRCS
+    View/Icons.cpp
     View/UISceneView.cpp
     View/Scene3DView.cpp
+)
+
+set(VIEW_COMPONENTS_HDRS
+    View/Components/LogPanel.h
+)
+set(VIEW_COMPONENTS_SRCS
+    View/Components/LogPanel.cpp
 )
 
 set(MISC_HDRS
@@ -139,6 +148,8 @@ add_library(engine STATIC
 
     ${VIEW_HDRS}
     ${VIEW_SRCS}
+    ${VIEW_COMPONENTS_HDRS}
+    ${VIEW_COMPONENTS_SRCS}
 
     ${MISC_HDRS}
     ${MISC_SRCS}
@@ -165,6 +176,7 @@ add_library(engine STATIC
 source_group(src\\Base FILES ${BASE_HDRS} ${BASE_SRCS})
 source_group(src\\Common FILES ${COMMON_HDRS} ${COMMON_SRCS})
 source_group(src\\View FILES ${VIEW_HDRS} ${VIEW_SRCS})
+source_group(src\\View\\Components FILES ${VIEW_COMPONENTS_HDRS} ${VIEW_COMPONENTS_SRCS})
 source_group(src\\Misc FILES ${MISC_HDRS} ${MISC_SRCS})
 source_group(src\\Math FILES ${MATH_SRCS} ${MATH_HDRS})
 source_group(src\\Job FILES ${JOB_HDRS} ${JOB_SRCS})
