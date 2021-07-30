@@ -238,7 +238,7 @@ public:
 
     void LookAt(const Vector3& target, const Vector3& up, float smooth = 1.0f);
 
-    Vector3 GetPosition();
+    Vector3 GetPosition(bool local = true);
 
     void SetPosition(const Vector3& pos);
 
@@ -250,17 +250,17 @@ public:
 
     void SetRotation(float eulerX, float eulerY, float eulerZ);
 
-    Vector3 GetRight() const;
+    Vector3 GetRight(bool local = true) const;
 
-    Vector3 GetUp() const;
+    Vector3 GetUp(bool local = true) const;
 
-    Vector3 GetForward() const;
+    Vector3 GetForward(bool local = true) const;
 
-    Vector3 GetLeft() const;
+    Vector3 GetLeft(bool local = true) const;
 
-    Vector3 GetBackward() const;
+    Vector3 GetBackward(bool local = true) const;
 
-    Vector3 GetDown() const;
+    Vector3 GetDown(bool local = true) const;
 
     const Matrix4x4& GetView();
 
@@ -270,7 +270,7 @@ public:
 
     void SetTransform(const Matrix4x4& world);
 
-    const Matrix4x4& GetTransform();
+    const Matrix4x4& GetTransform(bool local = true);
 
     void Perspective(float fovy, float width, float height, float zNear, float zFar);
 
@@ -288,22 +288,22 @@ public:
 
     void OnMouseWheel(float wheel);
 
-    float GetNear() const
+    FORCEINLINE float GetNear() const
     {
         return m_Near;
     }
 
-    float GetFar() const
+    FORCEINLINE float GetFar() const
     {
         return m_Far;
     }
 
-    float GetFov() const
+    FORCEINLINE float GetFov() const
     {
         return m_Fov;
     }
 
-    float GetAspect() const
+    FORCEINLINE float GetAspect() const
     {
         return m_Aspect;
     }

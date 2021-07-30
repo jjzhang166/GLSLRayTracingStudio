@@ -217,9 +217,16 @@ void Camera::LookAt(const Vector3& target, const Vector3& up, float smooth)
     node->transform.LookAt(target, &up, smooth);
 }
 
-Vector3 Camera::GetPosition()
+Vector3 Camera::GetPosition(bool local)
 {
-    return node->transform.GetOrigin();
+    if (local)
+    {
+        return node->transform.GetOrigin();
+    }
+    else
+    {
+        return node->GlobalTransform().GetOrigin();
+    }
 }
 
 void Camera::SetPosition(const Vector3& pos)
@@ -247,34 +254,76 @@ void Camera::SetRotation(float eulerX, float eulerY, float eulerZ)
     node->transform.SetRotation(Vector3(eulerX, eulerY, eulerZ));
 }
 
-Vector3 Camera::GetRight() const
+Vector3 Camera::GetRight(bool local) const
 {
-    return node->transform.GetRight();
+    if (local)
+    {
+        return node->transform.GetRight();
+    }
+    else
+    {
+        return node->GlobalTransform().GetRight();
+    }
 }
 
-Vector3 Camera::GetUp() const
+Vector3 Camera::GetUp(bool local) const
 {
-    return node->transform.GetUp();
+    if (local)
+    {
+        return node->transform.GetUp();
+    }
+    else
+    {
+        return node->GlobalTransform().GetUp();
+    }
 }
 
-Vector3 Camera::GetForward() const
+Vector3 Camera::GetForward(bool local) const
 {
-    return node->transform.GetForward();
+    if (local)
+    {
+        return node->transform.GetForward();
+    }
+    else
+    {
+        return node->GlobalTransform().GetForward();
+    }
 }
 
-Vector3 Camera::GetLeft() const
+Vector3 Camera::GetLeft(bool local) const
 {
-    return node->transform.GetLeft();
+    if (local)
+    {
+        return node->transform.GetLeft();
+    }
+    else
+    {
+        return node->GlobalTransform().GetLeft();
+    }
 }
 
-Vector3 Camera::GetBackward() const
+Vector3 Camera::GetBackward(bool local) const
 {
-    return node->transform.GetBackward();
+    if (local)
+    {
+        return node->transform.GetBackward();
+    }
+    else
+    {
+        return node->GlobalTransform().GetBackward();
+    }
 }
 
-Vector3 Camera::GetDown() const
+Vector3 Camera::GetDown(bool local) const
 {
-    return node->transform.GetDown();
+    if (local)
+    {
+        return node->transform.GetDown();
+    }
+    else
+    {
+        return node->GlobalTransform().GetDown();
+    }
 }
 
 const Matrix4x4& Camera::GetView()
@@ -300,9 +349,16 @@ void Camera::SetTransform(const Matrix4x4& world)
     node->transform = world;
 }
 
-const Matrix4x4& Camera::GetTransform()
+const Matrix4x4& Camera::GetTransform(bool local)
 {
-    return node->transform;
+    if (local)
+    {
+        return node->transform;
+    }
+    else
+    {
+        node->GlobalTransform();
+    }
 }
 
 void Camera::Perspective(float fovy, float width, float height, float zNear, float zFar)
