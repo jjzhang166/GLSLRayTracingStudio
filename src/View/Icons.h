@@ -2,12 +2,14 @@
 
 #include "Common/Common.h"
 #include "Core/Texture.h"
+#include "Math/Vector2.h"
 
 #include <glad/glad.h>
 
 enum IconName
 {
-    ICON_VISIBLE    = 04,
+    ICON_CLOSE      = 0,
+    ICON_VISIBLE    = 4,
     ICON_INVISIBLE  = 97,
     ICON_LIGHT      = 34,
     ICON_CAMERA     = 69,
@@ -21,21 +23,16 @@ class Icons
 {
 public:
 
-    Icons();
+    static void Init();
 
-    virtual ~Icons();
+    static void Destroy();
 
-    void Load();
+    static void DrawImage(IconName name, Vector2 size = Vector2(0.0f, 0.0f));
 
-    void Destroy();
-
-    FORCEINLINE GLTexture* GetIcon(IconName name)
-    {
-        return m_Icons[name];
-    }
+    static bool DrawButton(IconName name, Vector2 size = Vector2(0.0f, 0.0f));
 
 protected:
 
-    GLTexture* m_Icons[IconName::ICON_COUNT];
-
+     static GLTexture* m_Icons[IconName::ICON_COUNT];
 };
+

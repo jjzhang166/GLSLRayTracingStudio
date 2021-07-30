@@ -65,14 +65,14 @@ bool UISceneView::Init()
     io.Fonts->AddFontFromFileTTF("../assets/fonts/Roboto-Light.ttf", 16.0f * fontScale);
 
     // load icons
-    m_Icons.Load();
+    Icons::Init();
 
     return true;
 }
 
 void UISceneView::Destroy()
 {
-    m_Icons.Destroy();
+    Icons::Destroy();
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -279,17 +279,7 @@ void UISceneView::OnRender()
     ImGui::ShowDemoWindow();
 
     {
-        ImGui::PushID(0);
-        ImVec2 size = ImVec2(32.0f, 32.0f);
-        ImVec2 uv0  = ImVec2(0.0f,  0.0f);
-        ImVec2 uv1  = ImVec2(1.0f,  1.0f);
-        ImVec4 bgCol = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
-        ImVec4 tintCol = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-
-        ImGui::Image((ImTextureID)(intptr_t)m_Icons.GetIcon(IconName::ICON_CAMERA)->GetTexture(), size, uv0, uv1, tintCol, bgCol);
-
-        ImGui::PopID();
-        ImGui::SameLine();
+        Icons::DrawImage(IconName::ICON_CAMERA);
     }
 
     ImGui::Render();

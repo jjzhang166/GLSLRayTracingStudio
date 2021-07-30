@@ -51,7 +51,6 @@ private:
 private:
 
     ImGuiIO*        m_ImGuiIO;
-    Icons           m_Icons;
 
     float           m_PanelProjectWidth;
     float           m_PanelPropertyWidth;
