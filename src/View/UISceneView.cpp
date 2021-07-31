@@ -22,7 +22,8 @@ UISceneView::UISceneView(std::shared_ptr<GLWindow> window, std::shared_ptr<GLSce
     , m_PanelPropertyWidth(300.0f)
     , m_PanelAssetsWidth(200.0f)
 
-    , m_MainMenuBar(this)
+    , m_MainMenuBar(this, scene)
+    , m_ProjectPanel(this, scene)
 {
 
 }
@@ -54,8 +55,18 @@ bool UISceneView::Init()
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
     io.IniFilename = "../imgui.ini"; 
     io.LogFilename = "../imgui.log";
-    
-    ImGui::StyleColorsDark();
+
+    // style
+    {
+        ImGui::StyleColorsDark();
+        ImGuiStyle& style = ImGui::GetStyle();
+        style.ChildBorderSize  = 0.0f;
+        style.WindowBorderSize = 0.0f;
+        style.TabRounding      = 0.0f;
+        style.Colors[ImGuiCol_Tab]        = ImVec4(0.314f, 0.314f, 0.314f, 1.0f);
+        style.Colors[ImGuiCol_TabHovered] = ImVec4(0.588f, 0.588f, 0.588f, 1.0f);
+        style.Colors[ImGuiCol_TabActive]  = ImVec4(0.392f, 0.392f, 0.392f, 1.0f);
+    }
 
     ImGui_ImplGlfw_InitForOpenGL(Window()->Window(), true);
     ImGui_ImplOpenGL3_Init("#version 130");
@@ -193,11 +204,6 @@ void UISceneView::DrawConsolePanel()
     }
 }
 
-void UISceneView::DrawProjectPanel()
-{
-    ImGui::Text("Project");
-}
-
 void UISceneView::OnRender()
 {
     m_MainMenuBar.HandleMoving();
@@ -232,7 +238,7 @@ void UISceneView::OnRender()
     // project panel
     {
         ImGui::BeginChild("Project", ImVec2(m_PanelProjectSize.x, m_PanelProjectSize.y), true);
-        DrawProjectPanel();
+        m_ProjectPanel.Draw();
         ImGui::EndChild();
     }
 
@@ -277,10 +283,6 @@ void UISceneView::OnRender()
     }
 
     ImGui::ShowDemoWindow();
-
-    {
-        Icons::DrawImage(IconName::ICON_CAMERA);
-    }
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

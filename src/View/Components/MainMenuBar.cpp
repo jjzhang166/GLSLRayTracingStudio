@@ -13,8 +13,10 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 
-MainMenuBar::MainMenuBar(UISceneView* uiview)
+MainMenuBar::MainMenuBar(UISceneView* uiview, GLScenePtr scene)
     : m_UIView(uiview)
+    , m_Scene(scene)
+    , m_ShowingAbout(false)
 {
     float fontScale = WindowsMisc::GetDPI() / 96.0f;
 
@@ -50,6 +52,26 @@ void MainMenuBar::HandleMoving()
 
 void MainMenuBar::Draw()
 {
+    if (m_ShowingAbout)
+    {
+        ImGuiWindowFlags windowFlags = 0;
+        windowFlags |= ImGuiWindowFlags_NoScrollbar;
+        windowFlags |= ImGuiWindowFlags_NoResize;
+        windowFlags |= ImGuiWindowFlags_NoCollapse;
+        windowFlags |= ImGuiWindowFlags_NoMove;
+
+        ImGui::OpenPopup("About");
+        if (ImGui::BeginPopupModal("About", &m_ShowingAbout, windowFlags))
+        {
+            ImGui::Text("GLSLRayTracingStudio %s", APP_VERSION);
+            ImGui::Separator();
+            ImGui::Text("By Boblchen contributors.");
+            ImGui::Text("GLSLRayTracingStudio is licensed under the MIT License, see LICENSE for more information.");
+            ImGui::Text("Github:https://github.com/BobLChen/GLSLRayTracingStudio");
+            ImGui::EndPopup();
+        }
+    }
+
     if (ImGui::BeginMenuBar())
     {
         // menu rect
@@ -76,8 +98,10 @@ void MainMenuBar::Draw()
             {
                 std::string fileName = WindowsMisc::OpenFile("GLTF Files\0*.gltf;*.glb\0\0");
                 LoadGLTFJob* gltfJob = new LoadGLTFJob(fileName);
-                gltfJob->onCompleteEvent = [=](ThreadTask* task) -> void {
+                gltfJob->onCompleteEvent = [=](ThreadTask* task) -> void
+                {
                     LOGI("GLTF load complete : %s\n", fileName.c_str());
+                    m_Scene->AddScene(gltfJob->GetScene());
                 };
                 JobManager::AddJob(gltfJob);
                 LOGI("Loading GLTF : %s\n", fileName.c_str());
@@ -120,22 +144,7 @@ void MainMenuBar::Draw()
         {
             if (ImGui::MenuItem("About"))
             {
-                ImGuiWindowFlags windowFlags = 0;
-                windowFlags |= ImGuiWindowFlags_NoScrollbar;
-                windowFlags |= ImGuiWindowFlags_NoResize;
-                windowFlags |= ImGuiWindowFlags_NoCollapse;
-                windowFlags |= ImGuiWindowFlags_NoMove;
-
-                ImGui::OpenPopup("About");
-                if (ImGui::BeginPopupModal("About", &m_ShowingAbout, windowFlags))
-                {
-                    ImGui::Text("GLSLRayTracingStudio %s", APP_VERSION);
-                    ImGui::Separator();
-                    ImGui::Text("By Boblchen contributors.");
-                    ImGui::Text("GLSLRayTracingStudio is licensed under the MIT License, see LICENSE for more information.");
-                    ImGui::Text("Github:https://github.com/BobLChen/GLSLRayTracingStudio");
-                    ImGui::EndPopup();
-                }
+                m_ShowingAbout = true;
             }
             ImGui::EndMenu();
         }

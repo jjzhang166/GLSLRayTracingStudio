@@ -41,6 +41,16 @@ public:
         return m_Camera;
     }
 
+    FORCEINLINE const Scene3DArray& GetScenes() const
+    {
+        return m_Scenes;
+    }
+
+    FORCEINLINE Scene3DArray& GetScenes()
+    {
+        return m_Scenes;
+    }
+
 private:
 
     void CreateAccelerationStructures();

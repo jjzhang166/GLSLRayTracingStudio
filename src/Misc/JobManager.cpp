@@ -75,6 +75,11 @@ void JobManager::Destroy()
     }
 }
 
+TaskThreadPool* JobManager::TaskPool()
+{
+    return s_TaskPool;
+}
+
 void JobManager::AddJob(ThreadTask* task)
 {
     if (task == nullptr)

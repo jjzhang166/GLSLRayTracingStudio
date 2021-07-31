@@ -23,4 +23,6 @@ public:
     static void Tick();
 
     static int32 Count();
+
+    static TaskThreadPool* TaskPool();
 };

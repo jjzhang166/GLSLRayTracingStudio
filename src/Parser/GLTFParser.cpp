@@ -1,8 +1,10 @@
-﻿#include "Parser/GLTFParser.h"
+﻿#include "Base/Base.h"
+
+#include "Parser/GLTFParser.h"
 #include "Parser/tiny_gltf.h"
 
 #include "Misc/FileMisc.h"
-#include "Base/Base.h"
+#include "Misc/JobManager.h"
 
 #include "Math/Vector2.h"
 #include "Math/Vector3.h"
@@ -10,6 +12,7 @@
 #include "Math/Quat.h"
 
 #include <string>
+#include <thread>
 #include <glad/glad.h>
 
 #define KHR_LIGHTS_PUNCTUAL_EXTENSION_NAME "KHR_lights_punctual"
@@ -538,11 +541,6 @@ static void ImportMesh(Scene3DPtr scene, tinygltf::Model& model, Object3DPtr obj
                 }
             }
         }
-
-        // bvh
-        {
-            mesh->BuildBVH();
-        }
     }
 }
 
@@ -616,7 +614,14 @@ static void ImportNode(Scene3DPtr scene, tinygltf::Model& model, int32 nodeID, O
     }
 
     // name
-    object3D->name = gltfNode.name;
+    if (gltfNode.name.empty())
+    {
+        object3D->name = std::string("node_") + std::to_string(nodeID);
+    }
+    else
+    {
+        object3D->name = gltfNode.name;
+    }
 
     if (parent)
     {
@@ -731,20 +736,30 @@ static void ImportTextures(Scene3DPtr scene, tinygltf::Model& model)
 
     for (int32 i = 0; i < (int32)model.textures.size(); ++i)
     {
-        const auto& gltfTexture = model.textures[i];
-        const auto& gltfSampler = model.samplers[gltfTexture.sampler];
         std::shared_ptr<Texture> texture = std::make_shared<Texture>();
-
         // add to scene
         {
             scene->textures.push_back(texture);
         }
 
-        texture->source    = scene->images[gltfTexture.source];
-        texture->minFilter = filters[gltfSampler.minFilter];
-        texture->magFilter = filters[gltfSampler.magFilter];
-        texture->wrapS     = addressMode[gltfSampler.wrapS];
-        texture->wrapT     = addressMode[gltfSampler.wrapT];
+        const auto& gltfTexture = model.textures[i];
+        texture->source = scene->images[gltfTexture.source];
+
+        if (gltfTexture.sampler > -1)
+        {
+            auto& gltfSampler  = model.samplers[gltfTexture.sampler];
+            texture->minFilter = filters[gltfSampler.minFilter];
+            texture->magFilter = filters[gltfSampler.magFilter];
+            texture->wrapS     = addressMode[gltfSampler.wrapS];
+            texture->wrapT     = addressMode[gltfSampler.wrapT];
+        }
+        else
+        {
+            texture->minFilter = filters[9729];
+            texture->magFilter = filters[9729];
+            texture->wrapS     = addressMode[10497];
+            texture->wrapT     = addressMode[10497];
+        }
     }
 }
 
@@ -813,6 +828,68 @@ static void FitSceneCamera(Scene3DPtr scene)
     node->transform.LookAt(center);
 }
 
+static void BuildBottomLevelAS(Scene3DPtr scene)
+{
+    if (scene->meshes.size() == 0)
+    {
+        return;
+    }
+
+    struct BuildBVHJob : ThreadTask
+    {
+        MeshPtr mesh;
+
+        BuildBVHJob(MeshPtr inMesh)
+            : mesh(inMesh)
+        {
+
+        }
+
+        virtual void DoThreadedWork() override
+		{
+            mesh->BuildBVH();
+		}
+
+		virtual void Abandon() override
+		{
+
+		}
+    };
+
+    std::vector<BuildBVHJob*> jobs;
+    for (size_t i = 0; i < scene->meshes.size(); ++i)
+    {
+        BuildBVHJob* job = new BuildBVHJob(scene->meshes[i]);
+        jobs.push_back(job);
+        JobManager::TaskPool()->AddTask(job);
+    }
+
+    while (true)
+    {
+        bool complete = true;
+        for (size_t i = 0; i < jobs.size(); ++i)
+        {
+            if (!jobs[i]->IsDone())
+            {
+                complete = false;
+                break;
+            }
+        }
+
+        if (complete)
+        {
+            break;
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+
+    for (size_t i = 0; i < jobs.size(); ++i)
+    {
+        delete jobs[i];
+    }
+}
+
 LoadGLTFJob::LoadGLTFJob(const std::string& path)
     : m_Path(path)
     , m_Scene3D(nullptr)
@@ -857,4 +934,5 @@ void LoadGLTFJob::DoThreadedWork()
     ImportTextures(m_Scene3D, tinyModel);
     CalcSceneDimensions(m_Scene3D);
     FitSceneCamera(m_Scene3D);
+    BuildBottomLevelAS(m_Scene3D);
 }

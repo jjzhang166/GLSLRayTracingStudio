@@ -7,6 +7,7 @@
 #include "View/Icons.h"
 #include "View/Components/LogPanel.h"
 #include "View/Components/MainMenuBar.h"
+#include "View/Components/ProjectPanel.h"
 
 #include <memory>
 
@@ -40,8 +41,6 @@ private:
 
     void UpdatePanelRects();
 
-    void DrawProjectPanel();
-
     void DrawPropertyPanel();
 
     void DrawConsolePanel();
@@ -62,6 +61,7 @@ private:
     Rectangle2D     m_PanelScene3DRect;
 
     MainMenuBar     m_MainMenuBar;
+    ProjectPanel    m_ProjectPanel;
 
     std::string     m_Message;
 };
