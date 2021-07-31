@@ -3,6 +3,16 @@
 #include "Base/Base.h"
 #include "Math/Math.h"
 
+static int32 s_InstanceID = 0;
+
+Object3D::Object3D()
+    : instanceID(s_InstanceID++)
+{
+
+}
+
+// -----------------------------------------------------
+
 void Cross(const float* a, const float* b, float* r)
 {
     r[0] = a[1] * b[2] - a[2] * b[1];

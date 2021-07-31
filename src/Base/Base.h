@@ -350,6 +350,9 @@ protected:
 
 struct Object3D
 {
+    Object3D();
+
+    int32                   instanceID = -1;
     std::string             name;
     Matrix4x4               transform;
     LightPtr                light = nullptr;

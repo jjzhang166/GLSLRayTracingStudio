@@ -10,12 +10,13 @@ enum IconName
 {
     ICON_CLOSE      = 0,
     ICON_VISIBLE    = 4,
-    ICON_INVISIBLE  = 97,
     ICON_NODE       = 31,
     ICON_LIGHT      = 34,
     ICON_MESH       = 46,
     ICON_SCENE      = 69,
     ICON_CAMERA     = 69,
+    ICON_RECT       = 73,
+    ICON_INVISIBLE  = 97,
     ICON_COUNT      = 108
 };
 
