@@ -65,8 +65,8 @@ bool UISceneView::Init()
         style.WindowBorderSize = 0.0f;
         style.TabRounding      = 0.0f;
         style.Colors[ImGuiCol_Tab]        = ImVec4(0.314f, 0.314f, 0.314f, 1.0f);
-        style.Colors[ImGuiCol_TabHovered] = ImVec4(0.588f, 0.588f, 0.588f, 1.0f);
-        style.Colors[ImGuiCol_TabActive]  = ImVec4(0.392f, 0.392f, 0.392f, 1.0f);
+        style.Colors[ImGuiCol_TabHovered] = ImVec4(0.392f, 0.392f, 0.392f, 1.0f);
+        style.Colors[ImGuiCol_TabActive]  = ImVec4(0.588f, 0.588f, 0.588f, 1.0f);
     }
 
     ImGui_ImplGlfw_InitForOpenGL(Window()->Window(), true);
@@ -176,27 +176,29 @@ void UISceneView::DrawMessageUI()
 
 void UISceneView::DrawConsolePanel()
 {
-    static bool ShowAssetUI = true;
-
-    if (ImGui::Button("Assets"))
+    if (ImGui::BeginTabBar("Assets&Console", ImGuiTabBarFlags_None))
     {
-        ShowAssetUI = true;
-    }
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0.0f, 0.0f));
+        bool chooseAssets = ImGui::BeginTabItem("Assets");
+        ImGui::PopStyleVar(1);
 
-    ImGui::SameLine();
+        if (chooseAssets)
+        {
+            ImGui::Text("Assets");
+            ImGui::EndTabItem();
+        }
 
-    if (ImGui::Button("Console"))
-    {
-        ShowAssetUI = false;
-    }
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0.0f, 0.0f));
+        bool chooseConsole = ImGui::BeginTabItem("Console");
+        ImGui::PopStyleVar(1);
 
-    if (ShowAssetUI)
-    {
-        ImGui::Text("Assets");
-    }
-    else
-    {
-        Logger().Draw();
+        if (chooseConsole)
+        {
+            Logger().Draw();
+            ImGui::EndTabItem();
+        }
+
+        ImGui::EndTabBar();
     }
 }
 
@@ -233,9 +235,11 @@ void UISceneView::OnRender()
 
     // project panel
     {
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
         ImGui::BeginChild("Project", ImVec2(m_PanelProjectSize.x, m_PanelProjectSize.y), true);
         m_ProjectPanel.Draw();
         ImGui::EndChild();
+        ImGui::PopStyleColor();
     }
 
     // dummy scene 3d
@@ -248,9 +252,11 @@ void UISceneView::OnRender()
 
     // property panel
     {
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
         ImGui::BeginChild("Property", ImVec2(m_PanelPropertySize.x, m_PanelPropertySize.y), true);
         m_PropertyPanel.Draw(m_ProjectPanel.SelectedID());
         ImGui::EndChild();
+        ImGui::PopStyleColor();
     }
 
     // assets panel
@@ -263,9 +269,13 @@ void UISceneView::OnRender()
         windowFlags |= ImGuiWindowFlags_NoScrollbar;
         ImGui::SetNextWindowPos(ImVec2(0, ImGui::GetMainViewport()->WorkSize.y - m_PanelAssetsWidth));
         ImGui::SetNextWindowSize(ImVec2(ImGui::GetMainViewport()->WorkSize.x, m_PanelAssetsWidth));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
         ImGui::Begin("Assets&Console", nullptr, windowFlags);
         DrawConsolePanel();
         ImGui::End();
+        ImGui::PopStyleVar(1);
+        ImGui::PopStyleColor();
     }
 
     // end main

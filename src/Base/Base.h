@@ -57,9 +57,9 @@ enum class DebugMode
 
 struct RendererNode
 {
-    Matrix4x4   transform;
-    int32       meshID = -1;
-    int32       materialID = -1;
+    Matrix4x4               transform;
+    int32                   meshID = -1;
+    int32                   materialID = -1;
 };
 
 struct Light
@@ -71,43 +71,49 @@ struct Light
         SPOT
     };
 
-    Object3DPtr     node = nullptr;
+    Object3DPtr             node = nullptr;
 
-    int32           type = LightType::DIRECTIONAL;
+    int32                   type = LightType::DIRECTIONAL;
 
-    Vector3         color = Vector3(1.0f, 1.0f, 1.0f);
-    float           intensity = 1.0f;
+    Vector3                 color = Vector3(1.0f, 1.0f, 1.0f);
+    float                   intensity = 1.0f;
 
-    float           range = 0.0f;
-    float           innerCone = 0.0f;
-    float           outerCone = 0.0f;
+    float                   range = 0.0f;
+    float                   innerCone = 0.0f;
+    float                   outerCone = 0.0f;
 };
 
 struct Image
 {
-    std::string         name;
-    int32               width = 0;
-    int32               height = 0;
-    int32               comp = 4;
-    std::vector<uint8>  rgba;
+    int32                   id;
+
+    std::string             name;
+    int32                   width = 0;
+    int32                   height = 0;
+    int32                   comp = 4;
+    std::vector<uint8>      rgba;
 };
 
 struct HDRImage
 {
-    int32               width;
-    int32               height;
-    int32               component;
-    std::vector<float>  hdrRGBA;
-    std::vector<float>  envRGBA;
+    int32                   id;
+
+    int32                   width;
+    int32                   height;
+    int32                   component;
+    std::vector<float>      hdrRGBA;
+    std::vector<float>      envRGBA;
 };
 
 struct Texture
 {
-    ImagePtr            source = nullptr;
-    int32               minFilter = -1;
-    int32               magFilter = -1;
-    int32               wrapS = -1;
-    int32               wrapT = -1;
+    int32                   id;
+
+    ImagePtr                source = nullptr;
+    int32                   minFilter = -1;
+    int32                   magFilter = -1;
+    int32                   wrapS = -1;
+    int32                   wrapT = -1;
 };
 
 struct Material
@@ -125,55 +131,59 @@ struct Material
         BLEND
     };
 
+    int32                   id;
+
     // 0
-    Vector4         pbrBaseColorFactor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+    Vector4                 pbrBaseColorFactor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
     // 4
-    int32           pbrBaseColorTexture = -1;
-    float           pbrMetallicFactor = 1.0f;
-    float           pbrRoughnessFactor = 1.0f;
-    int32           pbrMetallicRoughnessTexture = -1;
+    int32                   pbrBaseColorTexture = -1;
+    float                   pbrMetallicFactor = 1.0f;
+    float                   pbrRoughnessFactor = 1.0f;
+    int32                   pbrMetallicRoughnessTexture = -1;
     // 8
-    Vector4         pbrDiffuseFactor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
-    Vector3         pbrSpecularFactor = Vector3(1.0f, 1.0f, 1.0f);
-    int32           pbrDiffuseTexture = -1;
+    Vector4                 pbrDiffuseFactor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+    Vector3                 pbrSpecularFactor = Vector3(1.0f, 1.0f, 1.0f);
+    int32                   pbrDiffuseTexture = -1;
     // 16
-    int32           shadingModel = MaterialType::METALLICROUGHNESS;
-    float           pbrGlossinessFactor = 1.0f;
-    int32           pbrSpecularGlossinessTexture = -1;
-    int32           emissiveTexture = -1;
+    int32                   shadingModel = MaterialType::METALLICROUGHNESS;
+    float                   pbrGlossinessFactor = 1.0f;
+    int32                   pbrSpecularGlossinessTexture = -1;
+    int32                   emissiveTexture = -1;
     // 20
-    Vector3         emissiveFactor = Vector3(1.0f, 1.0f, 1.0f);
-    int32           alphaMode = AlphaType::NONE;
+    Vector3                 emissiveFactor = Vector3(1.0f, 1.0f, 1.0f);
+    int32                   alphaMode = AlphaType::NONE;
     // 24
-    float           alphaCutoff = 0.5f;
-    int32           doubleSided = 0;
-    int32           normalTexture = -1;
-    float           normalTextureScale = 1.0f;
+    float                   alphaCutoff = 0.5f;
+    int32                   doubleSided = 0;
+    int32                   normalTexture = -1;
+    float                   normalTextureScale = 1.0f;
     // 28
-    Vector4         offsetScale = Vector4(0.0f, 0.0f, 1.0f, 1.0f);
+    Vector4                 offsetScale = Vector4(0.0f, 0.0f, 1.0f, 1.0f);
     // 32
-    int32           unlit = -1;
-    float           transmissionFactor = 1.0f;
-    int32           transmissionTexture = -1;
-    float           ior = 1.0f;
+    int32                   unlit = -1;
+    float                   transmissionFactor = 1.0f;
+    int32                   transmissionTexture = -1;
+    float                   ior = 1.0f;
     // 36
-    Vector3         anisotropyDirection = Vector3(0.0f, 0.0f, 0.0f);
-    float           anisotropy = 0.0f;
+    Vector3                 anisotropyDirection = Vector3(0.0f, 0.0f, 0.0f);
+    float                   anisotropy = 0.0f;
     // 40
-    Vector3         attenuationColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
-    float           thicknessFactor = 1.0f;
+    Vector3                 attenuationColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+    float                   thicknessFactor = 1.0f;
     // 44
-    int32           thicknessTexture = -1;
-    float           attenuationDistance = 0;
-    float           clearcoatFactor = 1.0f;
-    float           clearcoatRoughness = 1.0f;
+    int32                   thicknessTexture = -1;
+    float                   attenuationDistance = 0;
+    float                   clearcoatFactor = 1.0f;
+    float                   clearcoatRoughness = 1.0f;
     // 48
-    int32           clearcoatTexture = -1;
-    int32           clearcoatRoughnessTexture = -1;
+    int32                   clearcoatTexture = -1;
+    int32                   clearcoatRoughnessTexture = -1;
 };
 
 struct Mesh
 {
+    int32                   id;
+
     std::string             name;
     Object3DPtr             node = nullptr;
     std::shared_ptr<Bvh>    bvh = nullptr;
@@ -306,40 +316,40 @@ public:
 
 public:
 
-    Object3DPtr node = nullptr;
+    Object3DPtr             node = nullptr;
 
-    float		smooth = 1.0f;
-    float		speed = 1.0f;
-    float		speedFactor = 0.5f;
+    float		            smooth = 1.0f;
+    float		            speed = 1.0f;
+    float		            speedFactor = 0.5f;
 
-    float		focalDist = 1.0f;
-    float		aperture = 0.0f;
+    float		            focalDist = 1.0f;
+    float		            aperture = 0.0f;
 
-    bool        isMoving = false;
+    bool                    isMoving = false;
 
 protected:
 
-    bool        m_RMouseDown = false;
-    bool        m_MMouseDown = false;
+    bool                    m_RMouseDown = false;
+    bool                    m_MMouseDown = false;
 
-    Vector2		m_LastMouse;
-    Vector2     m_CurrMouse;
-    float		m_MouseWheel = 0.0f;
+    Vector2		            m_LastMouse;
+    Vector2                 m_CurrMouse;
+    float		            m_MouseWheel = 0.0f;
 
-    float		m_SpinX = 0.0f;
-    float		m_SpinY = 0.0f;
-    float		m_SpinZ = 0.0f;
+    float		            m_SpinX = 0.0f;
+    float		            m_SpinY = 0.0f;
+    float		            m_SpinZ = 0.0f;
     
-    Matrix4x4	m_View;
-    Matrix4x4	m_Projection;
-    Matrix4x4	m_ViewProjection;
+    Matrix4x4	            m_View;
+    Matrix4x4	            m_Projection;
+    Matrix4x4	            m_ViewProjection;
 
-    float		m_Near = 1.0f;
-    float		m_Far = 3000.0f;
+    float		            m_Near = 1.0f;
+    float		            m_Far = 3000.0f;
 
     // Perspective
-    float		m_Fov = PI / 4.0f;
-    float		m_Aspect = 1.0f;
+    float		            m_Fov = PI / 4.0f;
+    float		            m_Aspect = 1.0f;
 };
 
 struct Object3D

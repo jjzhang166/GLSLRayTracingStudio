@@ -40,6 +40,8 @@ public:
 
     void AddScene(Scene3DPtr scene3D);
 
+    void CreateAccelerationStructures();
+
     FORCEINLINE CameraPtr GetCamera() const
     {
         return m_Camera;
@@ -57,8 +59,6 @@ public:
 
 private:
 
-    void CreateAccelerationStructures();
-
     void RebuildInstancesData();
 
     void CreateBLAS();
@@ -72,8 +72,8 @@ protected:
     LightArray                      m_Lights;
     ImageArray                      m_Images;
     HDRImageArray                   m_Hdrs;
-    std::vector<RendererNode>       m_Renderers;
     CameraPtr					    m_Camera;
+    std::vector<RendererNode>       m_Renderers;
 
     std::vector<uint32>             m_Indices;
     std::vector<Vector3>            m_Positions;

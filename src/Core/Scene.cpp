@@ -29,6 +29,42 @@ void GLScene::AddScene(Scene3DPtr scene3D)
 {
     m_Scenes.push_back(scene3D);
     // TODO:add scene resouces
+
+    for (size_t i = 0; i < scene3D->meshes.size(); ++i)
+    {
+        AddMesh(scene3D->meshes[i]);
+    }
+
+    for (size_t i = 0; i < scene3D->images.size(); ++i)
+    {
+        AddImage(scene3D->images[i]);
+    }
+
+    for (size_t i = 0; i < scene3D->materials.size(); ++i)
+    {
+        AddMaterial(scene3D->materials[i]);
+    }
+
+    for (size_t i = 0; i < scene3D->lights.size(); ++i)
+    {
+        AddLight(scene3D->lights[i]);
+    }
+
+    for (size_t i = 0; i < scene3D->nodes.size(); ++i)
+    {
+        Object3DPtr node = scene3D->nodes[i];
+        if (node->meshes.size() == 0)
+        {
+            continue;
+        }
+
+        for (size_t j = 0; j < node->meshes.size(); ++j)
+        {
+            auto mesh = node->meshes[j];
+            auto mat  = node->materials[j];
+            AddRenderer(mesh->id, mat->id, node->GlobalTransform());
+        }
+    }
 }
 
 void GLScene::SetCamera(CameraPtr inCamera)
@@ -39,13 +75,15 @@ void GLScene::SetCamera(CameraPtr inCamera)
 int32 GLScene::AddMesh(MeshPtr mesh)
 {
     int32 id = (int32)m_Meshes.size();
+    mesh->id = id;
     m_Meshes.push_back(mesh);
     return id;
 }
 
 int32 GLScene::AddImage(ImagePtr image)
 {
-    int32 id = (int32)m_Images.size();
+    int32 id  = (int32)m_Images.size();
+    image->id = id;
     m_Images.push_back(image);
     return id;
 }
@@ -53,6 +91,7 @@ int32 GLScene::AddImage(ImagePtr image)
 int32 GLScene::AddMaterial(MaterialPtr material)
 {
     int32 id = (int32)m_Materials.size();
+    material->id = id;
     m_Materials.push_back(material);
     return id;
 }
