@@ -120,7 +120,7 @@ void Camera::GetGizmoViewProjection(float* view, float* projection)
     Vector3 up = global.GetUp();
     GizmoLookAt((float*)&p, (float*)&at, (float*)&up, view);
 
-    float ratio = m_Width / m_Height;
+    float ratio = m_Aspect;
     float fov = (1.f / ratio) * MMath::Tan(m_Fov / 2.f);
     GizmoPerspective(MMath::RadiansToDegrees(fov), ratio, m_Near, m_Far, projection);
 }
@@ -371,20 +371,18 @@ Matrix4x4 Camera::GetTransform(bool local)
     }
 }
 
-void Camera::Perspective(float fovy, float width, float height, float zNear, float zFar)
+void Camera::Perspective(float fovy, float aspect, float zNear, float zFar)
 {
     m_Fov    = fovy;
     m_Near   = zNear;
     m_Far    = zFar;
-    m_Aspect = width / height;
-    m_Width  = width;
-    m_Height = height;
+    m_Aspect = aspect;
 
-    m_Projection.Perspective(fovy, width, height, zNear, zFar);
+    m_Projection.Perspective(fovy, aspect, zNear, zFar);
 }
 
 void Camera::SetFov(float fov)
 {
     m_Fov = fov;
-    m_Projection.Perspective(m_Fov, m_Width, m_Height, m_Near, m_Far);
+    m_Projection.Perspective(m_Fov, m_Aspect, m_Near, m_Far);
 }

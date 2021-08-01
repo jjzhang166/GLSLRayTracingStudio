@@ -127,6 +127,7 @@ void ProjectPanel::Draw()
 {
     Scene3DArray& scenes = m_Scene->GetScenes();
 
+    ImGui::Spacing();
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4.0f, 4.0f));
 
     // draw root node

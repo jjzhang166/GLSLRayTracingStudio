@@ -560,7 +560,7 @@ static void ImportCamera(Scene3DPtr scene, tinygltf::Model& model, Object3DPtr o
         }
 
         camera->node = object3D;
-        camera->Perspective((float)gltfCamera.perspective.yfov, 1.0f, 1.0f, (float)gltfCamera.perspective.znear, (float)gltfCamera.perspective.zfar);
+        camera->Perspective((float)gltfCamera.perspective.yfov, 1.0f, (float)gltfCamera.perspective.znear, (float)gltfCamera.perspective.zfar);
     }
     else
     {
@@ -582,8 +582,6 @@ static void ImportLight(Scene3DPtr scene, tinygltf::Model& model, Object3DPtr ob
     }
 
     light->node      = object3D;
-    light->position  = object3D->GlobalTransform().GetOrigin();
-    light->direction = object3D->GlobalTransform().GetForward();
     light->color     = Vector3((float)gltfLight.color[0], (float)gltfLight.color[1], (float)gltfLight.color[2]);
     light->innerCone = (float)gltfLight.spot.innerConeAngle;
     light->outerCone = (float)gltfLight.spot.outerConeAngle;
@@ -806,7 +804,7 @@ static void FitSceneCamera(Scene3DPtr scene)
     }
 
     CameraPtr camera = std::make_shared<Camera>();
-    camera->Perspective(MMath::DegreesToRadians(60.0f), 1.0f, 1.0f, 0.1f, 3000.0f);
+    camera->Perspective(MMath::DegreesToRadians(60.0f), 1.0f, 0.1f, 3000.0f);
 
     // add to scene
     Object3DPtr node = std::make_shared<Object3D>();

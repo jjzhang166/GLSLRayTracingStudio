@@ -8,6 +8,7 @@
 #include "View/Components/LogPanel.h"
 #include "View/Components/MainMenuBar.h"
 #include "View/Components/ProjectPanel.h"
+#include "View/Components/PropertyPanel.h"
 
 #include <memory>
 
@@ -41,8 +42,6 @@ private:
 
     void UpdatePanelRects();
 
-    void DrawPropertyPanel();
-
     void DrawConsolePanel();
 
     void DrawMessageUI();
@@ -62,6 +61,7 @@ private:
 
     MainMenuBar     m_MainMenuBar;
     ProjectPanel    m_ProjectPanel;
+    PropertyPanel   m_PropertyPanel;
 
     std::string     m_Message;
 };

@@ -31,7 +31,7 @@ public:
 
     Matrix4x4(const Vector3& inX, const Vector3& inY, const Vector3& inZ, const Vector3& inW);
 
-    FORCEINLINE void Perspective(float halfFOV, float width, float height, float minZ, float maxZ);
+    FORCEINLINE void Perspective(float halfFOV, float aspect, float minZ, float maxZ);
 
     FORCEINLINE void Orthographic(float left, float right, float bottom, float top, float minZ, float maxZ);
 
@@ -1613,9 +1613,8 @@ FORCEINLINE void Matrix4x4::Mirror(Axis::Type mirrorAxis, Axis::Type flipAxis)
     }
 }
 
-FORCEINLINE void Matrix4x4::Perspective(float fovy, float width, float height, float zNear, float zFar)
+FORCEINLINE void Matrix4x4::Perspective(float fovy, float aspect, float zNear, float zFar)
 {
-    float aspect = width / height;
     float tanHalfFovy = MMath::Tan(fovy / 2);
     
     m[0][0] = 1 / (aspect * tanHalfFovy);	m[0][1] = 0.0f;					m[0][2] = 0.0f;									m[0][3] = 0.0f;

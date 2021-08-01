@@ -78,11 +78,7 @@ struct Light
     Vector3         color = Vector3(1.0f, 1.0f, 1.0f);
     float           intensity = 1.0f;
 
-    Vector3         direction = Vector3(0.0f, 0.0f, 1.0f);
-
     float           range = 0.0f;
-    Vector3         position = Vector3(0.0f, 0.0f, 0.0f);
-
     float           innerCone = 0.0f;
     float           outerCone = 0.0f;
 };
@@ -272,7 +268,7 @@ public:
 
     Matrix4x4 GetTransform(bool local = true);
 
-    void Perspective(float fovy, float width, float height, float zNear, float zFar);
+    void Perspective(float fovy, float aspect, float zNear, float zFar);
 
     void SetFov(float fov);
 
@@ -340,8 +336,6 @@ protected:
 
     float		m_Near = 1.0f;
     float		m_Far = 3000.0f;
-    float       m_Width = 1400.0f;
-    float       m_Height = 900.0f;
 
     // Perspective
     float		m_Fov = PI / 4.0f;

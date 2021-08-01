@@ -24,6 +24,7 @@ UISceneView::UISceneView(std::shared_ptr<GLWindow> window, std::shared_ptr<GLSce
 
     , m_MainMenuBar(this, scene)
     , m_ProjectPanel(this, scene)
+    , m_PropertyPanel(this, scene)
 {
 
 }
@@ -123,11 +124,6 @@ void UISceneView::UpdatePanelRects()
     m_PanelScene3DRect.y = m_PanelAssetsSize.y;
     m_PanelScene3DRect.w = rect.w - m_PanelProjectSize.x - m_PanelPropertySize.x;
     m_PanelScene3DRect.h = m_PanelProjectSize.y;
-}
-
-void UISceneView::DrawPropertyPanel()
-{
-    ImGui::Text("Property");
 }
 
 void UISceneView::DrawMessageUI()
@@ -253,7 +249,7 @@ void UISceneView::OnRender()
     // property panel
     {
         ImGui::BeginChild("Property", ImVec2(m_PanelPropertySize.x, m_PanelPropertySize.y), true);
-        DrawPropertyPanel();
+        m_PropertyPanel.Draw(m_ProjectPanel.SelectedID());
         ImGui::EndChild();
     }
 
