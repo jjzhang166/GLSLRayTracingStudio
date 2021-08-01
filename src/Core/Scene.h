@@ -20,6 +20,10 @@ public:
 
     virtual ~GLScene();
 
+    bool Init();
+
+    void Destroy();
+
     void SetCamera(CameraPtr camera);
 
     int32 AddMesh(MeshPtr mesh);

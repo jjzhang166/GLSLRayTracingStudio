@@ -15,6 +15,16 @@ GLScene::~GLScene()
 
 }
 
+bool GLScene::Init()
+{
+    return true;
+}
+
+void GLScene::Destroy()
+{
+
+}
+
 void GLScene::AddScene(Scene3DPtr scene3D)
 {
     m_Scenes.push_back(scene3D);

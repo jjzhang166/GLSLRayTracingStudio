@@ -11,6 +11,8 @@ public:
 
     GLShader(const std::string& filePath, GLuint shaderType);
 
+    virtual ~GLShader();
+
     GLuint Object() const;
 
 private:

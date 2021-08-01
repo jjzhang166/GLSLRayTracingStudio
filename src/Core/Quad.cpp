@@ -28,6 +28,12 @@ Quad::Quad()
     glBindVertexArray(0);
 }
 
+Quad::~Quad()
+{
+    glDeleteBuffers(1, &m_Vbo);
+    glDeleteVertexArrays(1, &m_Vao);
+}
+
 void Quad::Draw(GLProgramPtr program)
 {
     program->Active();

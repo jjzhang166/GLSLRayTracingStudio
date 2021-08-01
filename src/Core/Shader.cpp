@@ -89,6 +89,15 @@ GLShader::GLShader(const std::string& filePath, GLuint shaderType)
     }
 }
 
+GLShader::~GLShader()
+{
+    if (m_Object != 0)
+    {
+        glDeleteShader(m_Object);
+        m_Object = 0;
+    }
+}
+
 GLuint GLShader::Object() const
 {
     return m_Object;
