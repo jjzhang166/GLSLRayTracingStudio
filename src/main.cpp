@@ -68,8 +68,7 @@ int32 main(int32, char**)
     }
 
     // destroy resources
-    // scene = nullptr;
-    scene->Destroy();
+    scene->Free();
     uiView->Destroy();
     view3D->Destroy();
     window->Destroy();

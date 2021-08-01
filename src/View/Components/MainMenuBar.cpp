@@ -9,6 +9,7 @@
 #include "Misc/JobManager.h"
 
 #include "Parser/GLTFParser.h"
+#include "Parser/HDRParser.h"
 
 #include "imgui.h"
 #include "imgui_internal.h"
@@ -97,45 +98,61 @@ void MainMenuBar::Draw()
             if (ImGui::MenuItem("Open GLTF"))
             {
                 std::string fileName = WindowsMisc::OpenFile("GLTF Files\0*.gltf;*.glb\0\0");
-                LoadGLTFJob* gltfJob = new LoadGLTFJob(fileName);
-                gltfJob->onCompleteEvent = [=](ThreadTask* task) -> void
+                if (!fileName.empty())
                 {
-                    LOGI("GLTF load complete : %s\n", fileName.c_str());
-                    m_Scene->AddScene(gltfJob->GetScene());
-                };
-                JobManager::AddJob(gltfJob);
-                LOGI("Loading GLTF : %s\n", fileName.c_str());
-            }
+                    m_Scene->Free();
 
-            if (ImGui::MenuItem("Open HDR"))
-            {
-                std::string fileName = WindowsMisc::OpenFile("HDR Files\0*.hdr\0\0");
-                LOGI("Loading HDR file : %s\n", fileName.c_str());
+                    LoadGLTFJob* gltfJob = new LoadGLTFJob(fileName);
+                    gltfJob->onCompleteEvent = [=](ThreadTask* task) -> void
+                    {
+                        LOGI("GLTF load complete : %s\n", fileName.c_str());
+                        m_Scene->AddScene(gltfJob->GetScene());
+                    };
+
+                    JobManager::AddJob(gltfJob);
+                    LOGI("Loading GLTF : %s\n", fileName.c_str());
+                }
             }
 
             if (ImGui::MenuItem("Import GLTF"))
             {
                 std::string fileName = WindowsMisc::OpenFile("GLTF Files\0*.gltf;*.glb\0\0");
-                LOGI("Loading GLTF : %s\n", fileName.c_str());
+                if (!fileName.empty())
+                {
+                    LoadGLTFJob* gltfJob = new LoadGLTFJob(fileName);
+                    gltfJob->onCompleteEvent = [=](ThreadTask* task) -> void
+                    {
+                        LOGI("GLTF load complete : %s\n", fileName.c_str());
+                        m_Scene->AddScene(gltfJob->GetScene());
+                    };
+
+                    JobManager::AddJob(gltfJob);
+                    LOGI("Loading GLTF : %s\n", fileName.c_str());
+                }
             }
 
             if (ImGui::MenuItem("Import HDR"))
             {
                 std::string fileName = WindowsMisc::OpenFile("HDR Files\0*.hdr\0\0");
-                LOGI("Loading HDR file : %s\n", fileName.c_str());
-            }
+                if (!fileName.empty())
+                {
+                    LoadHDRJob* hdrJob = new LoadHDRJob(fileName);
+                    hdrJob->onCompleteEvent = [=](ThreadTask* task) -> void
+                    {
+                        LOGI("HDR load complete : %s\n", fileName.c_str());
+                        m_Scene->AddHDR(hdrJob->GetHDRImage());
+                    };
 
-            if (ImGui::MenuItem("Test"))
-            {
-                LOGI("Test\n");
-                LOGE("Test2\n");
-                LOGW("Test3\n");
+                    JobManager::AddJob(hdrJob);
+                    LOGI("Loading HDR file : %s\n", fileName.c_str());
+                }
             }
 
             if (ImGui::MenuItem("Quit", "ESC"))
             {
                 m_UIView->Window()->Close();
             }
+
             ImGui::EndMenu();
         }
         

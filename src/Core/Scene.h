@@ -22,7 +22,7 @@ public:
 
     bool Init();
 
-    void Destroy();
+    void Free();
 
     void SetCamera(CameraPtr camera);
 

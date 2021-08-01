@@ -20,7 +20,7 @@ bool GLScene::Init()
     return true;
 }
 
-void GLScene::Destroy()
+void GLScene::Free()
 {
 
 }
