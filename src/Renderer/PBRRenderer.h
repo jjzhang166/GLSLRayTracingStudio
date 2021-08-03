@@ -2,6 +2,9 @@
 
 #include "Base/Renderer.h"
 
+#include "Core/Shader.h"
+#include "Core/Program.h"
+
 #include <vector>
 
 class PBRRenderer : public Renderer
@@ -9,6 +12,8 @@ class PBRRenderer : public Renderer
 public:
 
     PBRRenderer()
+        : m_Scene(nullptr)
+        , m_PBRShader(nullptr)
     {
 
     }
@@ -35,5 +40,6 @@ public:
 
 private:
 
-    GLScenePtr  m_Scene;
+    GLScenePtr      m_Scene;
+    GLProgramPtr    m_PBRShader;
 };

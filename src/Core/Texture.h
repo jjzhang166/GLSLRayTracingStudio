@@ -62,7 +62,7 @@ public:
         glBindTexture(m_Target, 0);
     }
     
-    void SubImage2D(GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, const void* data);
+    void Upload(GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, const void* data);
     
     void Filter(GLuint minFilter, GLuint magFilter);
     

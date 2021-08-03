@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "Base/Base.h"
+#include "Base/Buffer.h"
 
 #include "Bvh/Bvh.h"
 #include "Bvh/BvhTranslator.h"
@@ -30,6 +31,8 @@ public:
 
     int32 AddImage(ImagePtr image);
 
+    int32 AddTexture(TexturePtr texture);
+
     int32 AddMaterial(MaterialPtr material);
 
     int32 AddRenderer(int32 mesh, int32 material, const Matrix4x4& transform);
@@ -40,7 +43,9 @@ public:
 
     void AddScene(Scene3DPtr scene3D);
 
-    void CreateAccelerationStructures();
+    void Build();
+
+    void RebuildRendererDatas();
 
     FORCEINLINE CameraPtr GetCamera() const
     {
@@ -57,20 +62,79 @@ public:
         return m_Scenes;
     }
 
-private:
+    FORCEINLINE const MeshArray& Meshes() const
+    {
+        return m_Meshes;
+    }
 
-    void RebuildInstancesData();
+    FORCEINLINE const std::vector<RendererNode>& Renderers() const
+    {
+        return m_Renderers;
+    }
+
+    FORCEINLINE const GLTexture* SceneTextures() const
+    {
+        return m_SceneTextures;
+    }
+
+    FORCEINLINE const std::vector<GLuint>& VAOs() const
+    {
+        return m_VAOs;
+    }
+
+    FORCEINLINE const std::vector<VertexBuffer*>& VertexBuffers0() const
+    {
+        return m_VertexBuffers0;
+    }
+
+    FORCEINLINE const std::vector<VertexBuffer*>& VertexBuffers1() const
+    {
+        return m_VertexBuffers1;
+    }
+
+    FORCEINLINE const std::vector<VertexBuffer*>& VertexBuffers2() const
+    {
+        return m_VertexBuffers2;
+    }
+
+    FORCEINLINE const std::vector<VertexBuffer*>& VertexBuffers3() const
+    {
+        return m_VertexBuffers3;
+    }
+
+    FORCEINLINE const std::vector<VertexBuffer*>& VertexBuffers4() const
+    {
+        return m_VertexBuffers4;
+    }
+
+    FORCEINLINE const std::vector<IndexBuffer*>& IndexBuffers() const
+    {
+        return m_IndexBuffers;
+    }
+
+private:
 
     void CreateBLAS();
 
     void CreateTLAS();
 
+    void BuildMesheDatas();
+
+    void BuildRendererDatas();
+
+    void GenVertexBuffers();
+
+    void GenIndexBuffers();
+
+    void GenTextureArrays();
+    
 protected:
 
     MeshArray                       m_Meshes;
     MaterialArray                   m_Materials;
     LightArray                      m_Lights;
     ImageArray                      m_Images;
+    TextureArray                    m_Textures;
     HDRImageArray                   m_Hdrs;
     CameraPtr					    m_Camera;
     std::vector<RendererNode>       m_Renderers;
@@ -88,6 +152,15 @@ protected:
 
     std::shared_ptr<BvhTranslator>  m_BvhTranslator;
     std::shared_ptr<Bvh>            m_SceneBvh;
+
+    std::vector<VertexBuffer*>      m_VertexBuffers0;
+    std::vector<VertexBuffer*>      m_VertexBuffers1;
+    std::vector<VertexBuffer*>      m_VertexBuffers2;
+    std::vector<VertexBuffer*>      m_VertexBuffers3;
+    std::vector<VertexBuffer*>      m_VertexBuffers4;
+    std::vector<IndexBuffer*>       m_IndexBuffers;
+    std::vector<GLuint>             m_VAOs;
+    GLTexture*                      m_SceneTextures;
 
     Bounds3D					    m_SceneBounds;
     Scene3DArray                    m_Scenes;

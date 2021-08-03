@@ -7,13 +7,12 @@ precision highp samplerCube;
 precision highp isampler2D;
 precision highp sampler2DArray;
 
-out vec4 outColor;
-
 in vec2 varyTexCoords;
+in vec3 varyNormals;
 
-uniform sampler2D mainTexture;
+out vec4 outColor;
 
 void main()
 {
-	outColor = texture(mainTexture, varyTexCoords);
+	outColor = vec4(varyNormals.x, varyNormals.y, varyNormals.z, 1.0);
 }

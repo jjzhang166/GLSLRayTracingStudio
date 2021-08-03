@@ -22,7 +22,7 @@ static std::string LoadIncludeShader(const std::string& path, std::string includ
 
     if (!file.is_open())
     {
-        LOGE("Could not open the shader : %s", path.c_str());
+        LOGE("Could not open the shader : %s\n", path.c_str());
         return fullSourceCode;
     }
 

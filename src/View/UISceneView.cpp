@@ -96,15 +96,14 @@ void UISceneView::OnUpdate()
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
-
-    UpdatePanelRects();
 }
 
 void UISceneView::UpdatePanelRects()
 {
-    Rectangle2D menuBarRect = m_MainMenuBar.GetMenuBarRect();
+    Rectangle2D menuBarRect  = m_MainMenuBar.GetMenuBarRect();
+    Rectangle2D mainViewPort = Rectangle2D(0.0f, 0.0f, (float)Window()->Width(), (float)Window()->Height());
 
-    auto rect  = Rectangle2D(0, menuBarRect.h, ImGui::GetMainViewport()->WorkSize.x, ImGui::GetMainViewport()->WorkSize.y - menuBarRect.h);
+    auto rect  = Rectangle2D(0, menuBarRect.h, mainViewPort.w, mainViewPort.h - menuBarRect.h);
     auto space = ImGui::GetStyle().ItemSpacing;
 
     // project panel
@@ -232,6 +231,9 @@ void UISceneView::OnRender()
 
     // menu bar
     m_MainMenuBar.Draw();
+
+    // calc rect
+    UpdatePanelRects();
 
     // project panel
     {

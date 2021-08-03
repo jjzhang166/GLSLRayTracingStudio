@@ -1,5 +1,7 @@
 ﻿#include "Renderer/RayTracingRenderer.h"
 
+#include "Core/Scene.h"
+
 void RayTracingRenderer::Init()
 {
 

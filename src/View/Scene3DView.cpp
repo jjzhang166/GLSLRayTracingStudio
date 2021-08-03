@@ -21,11 +21,20 @@ bool Scene3DView::Init()
     m_PBRRenderer = std::make_shared<PBRRenderer>();
     m_RayRenderer = std::make_shared<RayTracingRenderer>();
 
+    m_PBRRenderer->Init();
+    m_RayRenderer->Init();
+
+    m_PBRRenderer->SetScene(m_Scene);
+    m_RayRenderer->SetScene(m_Scene);
+
     return true;
 }
 
 void Scene3DView::Destroy()
 {
+    m_PBRRenderer->Destroy();
+    m_RayRenderer->Destroy();
+
     m_PBRRenderer = nullptr;
     m_RayRenderer = nullptr;
 }
@@ -47,4 +56,6 @@ void Scene3DView::OnRender()
     glScissor(tx, ty, tw, th);
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    m_PBRRenderer->Render();
 }

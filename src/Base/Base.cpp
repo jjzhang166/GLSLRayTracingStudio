@@ -386,3 +386,9 @@ void Camera::SetFov(float fov)
     m_Fov = fov;
     m_Projection.Perspective(m_Fov, m_Aspect, m_Near, m_Far);
 }
+
+void Camera::SetAspect(float aspect)
+{
+    m_Aspect = aspect;
+    m_Projection.Perspective(m_Fov, m_Aspect, m_Near, m_Far);
+}

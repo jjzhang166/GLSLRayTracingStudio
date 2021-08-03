@@ -107,8 +107,10 @@ void MainMenuBar::Draw()
                     {
                         LOGI("GLTF load complete : %s\n", fileName.c_str());
                         m_Scene->AddScene(gltfJob->GetScene());
+                        m_Scene->GetCamera()->SetAspect(m_UIView->Window()->FrameWidth() * 1.0f / m_UIView->Window()->FrameHeight());
+                        m_Scene->Build();
                     };
-
+                    
                     JobManager::AddJob(gltfJob);
                     LOGI("Loading GLTF : %s\n", fileName.c_str());
                 }
@@ -124,6 +126,8 @@ void MainMenuBar::Draw()
                     {
                         LOGI("GLTF load complete : %s\n", fileName.c_str());
                         m_Scene->AddScene(gltfJob->GetScene());
+                        m_Scene->GetCamera()->SetAspect(m_UIView->Window()->FrameWidth() * 1.0f / m_UIView->Window()->FrameHeight());
+                        m_Scene->Build();
                     };
 
                     JobManager::AddJob(gltfJob);

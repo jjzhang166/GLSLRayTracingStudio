@@ -3,6 +3,7 @@
 #include <vector>
 #include <memory>
 
+#include "Base/Buffer.h"
 #include "Math/Vector3.h"
 #include "Math/Vector4.h"
 #include "Math/Bounds3D.h"
@@ -282,6 +283,8 @@ public:
 
     void SetFov(float fov);
 
+    void SetAspect(float aspect);
+
     void GetGizmoViewProjection(float* view, float* projection);
 
     void Update(float delta);
@@ -394,3 +397,4 @@ struct Scene3D
     LightArray              lights;
     CameraArray             cameras;
 };
+

@@ -3,11 +3,13 @@
     Base/GLWindow.h
     Base/Base.h
     Base/Renderer.h
+    Base/Buffer.h
 )
 set(BASE_SRCS
     Base/Base.cpp
     Base/SceneView.cpp
     Base/GLWindow.cpp
+    Base/Buffer.cpp
 )
 
 set(COMMON_HDRS

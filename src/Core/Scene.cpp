@@ -1,11 +1,15 @@
 ﻿#include "Common/Common.h"
 #include "Common/Log.h"
+
 #include "Core/Scene.h"
+
+#include "Parser/stb_image_resize.h"
 
 #include <iostream>
 #include <algorithm>
 
-GLScene::GLScene() 
+GLScene::GLScene()
+    : m_SceneTextures(nullptr)
 {
     
 }
@@ -22,13 +26,80 @@ bool GLScene::Init()
 
 void GLScene::Free()
 {
+    m_SceneBvh        = nullptr;
+    m_BvhTranslator   = nullptr;
+    m_IndicesTexWidth = 0;
+    m_TriDataTexWidth = 0;
+    m_SceneBounds     = Bounds3D(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 0.0f));
 
+    m_Meshes.clear();
+    m_Materials.clear();
+    m_Lights.clear();
+    m_Images.clear();
+    m_Textures.clear();
+    m_Hdrs.clear();
+    m_Renderers.clear();
+    m_Indices.clear();
+    m_Positions.clear();
+    m_Normals.clear();
+    m_Uvs.clear();
+    m_Tangents.clear();
+    m_Colors.clear();
+    m_Transforms.clear();
+    m_Scenes.clear();
+
+    if (m_SceneTextures)
+    {
+        delete m_SceneTextures;
+        m_SceneTextures = nullptr;
+    }
+
+    for (size_t i = 0; i < m_VAOs.size(); ++i)
+    {
+        glDeleteVertexArrays(1, &(m_VAOs[i]));
+    }
+    m_VAOs.clear();
+
+    for (size_t i = 0; i < m_VertexBuffers0.size(); ++i)
+    {
+        delete m_VertexBuffers0[i];
+    }
+    m_VertexBuffers0.clear();
+
+    for (size_t i = 0; i < m_VertexBuffers1.size(); ++i)
+    {
+        delete m_VertexBuffers1[i];
+    }
+    m_VertexBuffers1.clear();
+
+    for (size_t i = 0; i < m_VertexBuffers2.size(); ++i)
+    {
+        delete m_VertexBuffers2[i];
+    }
+    m_VertexBuffers2.clear();
+
+    for (size_t i = 0; i < m_VertexBuffers3.size(); ++i)
+    {
+        delete m_VertexBuffers3[i];
+    }
+    m_VertexBuffers3.clear();
+
+    for (size_t i = 0; i < m_VertexBuffers4.size(); ++i)
+    {
+        delete m_VertexBuffers4[i];
+    }
+    m_VertexBuffers4.clear();
+
+    for (size_t i = 0; i < m_IndexBuffers.size(); ++i)
+    {
+        delete m_IndexBuffers[i];
+    }
+    m_IndexBuffers.clear();
 }
 
 void GLScene::AddScene(Scene3DPtr scene3D)
 {
     m_Scenes.push_back(scene3D);
-    // TODO:add scene resouces
 
     for (size_t i = 0; i < scene3D->meshes.size(); ++i)
     {
@@ -40,6 +111,11 @@ void GLScene::AddScene(Scene3DPtr scene3D)
         AddImage(scene3D->images[i]);
     }
 
+    for (size_t i = 0; i < scene3D->textures.size(); ++i)
+    {
+        AddTexture(scene3D->textures[i]);
+    }
+    
     for (size_t i = 0; i < scene3D->materials.size(); ++i)
     {
         AddMaterial(scene3D->materials[i]);
@@ -65,6 +141,11 @@ void GLScene::AddScene(Scene3DPtr scene3D)
             AddRenderer(mesh->id, mat->id, node->GlobalTransform());
         }
     }
+
+    if (m_Camera == nullptr)
+    {
+        SetCamera(scene3D->cameras[0]);
+    }
 }
 
 void GLScene::SetCamera(CameraPtr inCamera)
@@ -85,6 +166,14 @@ int32 GLScene::AddImage(ImagePtr image)
     int32 id  = (int32)m_Images.size();
     image->id = id;
     m_Images.push_back(image);
+    return id;
+}
+
+int32 GLScene::AddTexture(TexturePtr texture)
+{
+    int32 id = (int32)m_Textures.size();
+    texture->id = id;
+    m_Textures.push_back(texture);
     return id;
 }
 
@@ -122,21 +211,24 @@ int32 GLScene::AddHDR(HDRImagePtr hdr)
     return id;
 }
 
-void GLScene::CreateAccelerationStructures()
+void GLScene::Build()
 {
     CreateBLAS();
-    CreateTLAS();
+    BuildMesheDatas();
+    BuildRendererDatas();
+    GenVertexBuffers();
+    GenIndexBuffers();
+    GenTextureArrays();
+}
 
-    // Flatten BVH
-    m_BvhTranslator = std::make_shared<BvhTranslator>();
-    m_BvhTranslator->Process(m_SceneBvh, m_Meshes, m_Renderers);
-
+void GLScene::BuildMesheDatas()
+{
     // Copy mesh data
     int32 verticesCnt = 0;
     for (size_t i = 0; i < m_Meshes.size(); ++i)
     {
         // Copy m_Indices from BVH and not from Mesh
-        int32 numIndices = (int32)m_Meshes[i]->bvh->GetNumIndices();
+        const int32 numIndices  = (int32)m_Meshes[i]->bvh->GetNumIndices();
         const int32* triIndices = m_Meshes[i]->bvh->GetIndices();
 
         for (int32 j = 0; j < numIndices; ++j)
@@ -165,10 +257,20 @@ void GLScene::CreateAccelerationStructures()
     m_Tangents.resize(m_TriDataTexWidth * m_TriDataTexWidth);
     m_Colors.resize(m_TriDataTexWidth * m_TriDataTexWidth);
 
+    // update indices
     for (size_t i = 0; i < m_Indices.size(); ++i)
     {
         m_Indices[i] = ((m_Indices[i] % m_TriDataTexWidth) << 12) | (m_Indices[i] / m_TriDataTexWidth);
     }
+}
+
+void GLScene::BuildRendererDatas()
+{
+    CreateTLAS();
+    
+    // Flatten BVH
+    m_BvhTranslator = std::make_shared<BvhTranslator>();
+    m_BvhTranslator->Process(m_SceneBvh, m_Meshes, m_Renderers);
 
     // Copy transforms
     m_Transforms.resize(m_Renderers.size());
@@ -178,7 +280,7 @@ void GLScene::CreateAccelerationStructures()
     }
 }
 
-void GLScene::RebuildInstancesData()
+void GLScene::RebuildRendererDatas()
 {
     CreateTLAS();
 
@@ -207,12 +309,12 @@ void GLScene::CreateTLAS()
         Vector3 forward     = Vector3(matrix.m[2][0], matrix.m[2][1], matrix.m[2][2]);
         Vector3 translation = Vector3(matrix.m[3][0], matrix.m[3][1], matrix.m[3][2]);
 
-        Vector3 xa = right * minBound.x;
-        Vector3 xb = right * maxBound.x;
-        Vector3 ya = up * minBound.y;
-        Vector3 yb = up * maxBound.y;
-        Vector3 za = forward * minBound.z;
-        Vector3 zb = forward * maxBound.z;
+        Vector3 xa = minBound.x * right;
+        Vector3 xb = maxBound.x * right;
+        Vector3 ya = minBound.y * up;
+        Vector3 yb = maxBound.y * up;
+        Vector3 za = minBound.z * forward;
+        Vector3 zb = maxBound.z * forward;
 
         bounds[i].min = Vector3::Min(xa, xb) + Vector3::Min(ya, yb) + Vector3::Min(za, zb) + translation;
         bounds[i].max = Vector3::Max(xa, xb) + Vector3::Max(ya, yb) + Vector3::Max(za, zb) + translation;
@@ -235,4 +337,151 @@ void GLScene::CreateBLAS()
         }
         mesh->BuildBVH();
     }
+}
+
+void GLScene::GenVertexBuffers()
+{
+    m_VAOs.resize(m_Meshes.size());
+    m_VertexBuffers0.resize(m_Meshes.size());
+    m_VertexBuffers1.resize(m_Meshes.size());
+    m_VertexBuffers2.resize(m_Meshes.size());
+    m_VertexBuffers3.resize(m_Meshes.size());
+    m_VertexBuffers4.resize(m_Meshes.size());
+
+    for (size_t i = 0; i < m_Meshes.size(); ++i)
+    {
+        auto mesh = m_Meshes[i];
+
+        // vbo
+        {
+            m_VertexBuffers0[i] = new VertexBuffer();
+            m_VertexBuffers0[i]->Upload((uint8*)(mesh->positions.data()), (int32)(sizeof(Vector3) * mesh->positions.size()));
+
+            m_VertexBuffers1[i] = new VertexBuffer();
+            m_VertexBuffers1[i]->Upload((uint8*)(mesh->normals.data()), (int32)(sizeof(uint32) * mesh->normals.size()));
+
+            m_VertexBuffers2[i] = new VertexBuffer();
+            m_VertexBuffers2[i]->Upload((uint8*)(mesh->uvs.data()), (int32)(sizeof(Vector2) * mesh->uvs.size()));
+
+            m_VertexBuffers3[i] = new VertexBuffer();
+            m_VertexBuffers3[i]->Upload((uint8*)(mesh->tangents.data()), (int32)(sizeof(uint32) * mesh->tangents.size()));
+
+            m_VertexBuffers4[i] = new VertexBuffer();
+            m_VertexBuffers4[i]->Upload((uint8*)(mesh->colors.data()), (int32)(sizeof(uint32) * mesh->colors.size()));
+        }
+
+        // vao
+        {
+            int32 offset = 0;
+
+            glGenVertexArrays(1, &(m_VAOs[i]));
+            glBindVertexArray(m_VAOs[i]);
+
+            // positions
+            glBindBuffer(m_VertexBuffers0[i]->Target(), m_VertexBuffers0[i]->Object());
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (GLvoid*)0);
+            glEnableVertexAttribArray(0);
+
+            // normals
+            glBindBuffer(m_VertexBuffers1[i]->Target(), m_VertexBuffers1[i]->Object());
+            glVertexAttribPointer(1, 1, GL_UNSIGNED_INT, GL_FALSE, 1 * sizeof(uint32), (GLvoid*)0);
+            glEnableVertexAttribArray(1);
+
+            // uvs
+            glBindBuffer(m_VertexBuffers2[i]->Target(), m_VertexBuffers2[i]->Object());
+            glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (GLvoid*)0);
+            glEnableVertexAttribArray(2);
+
+            // tangents
+            glBindBuffer(m_VertexBuffers3[i]->Target(), m_VertexBuffers3[i]->Object());
+            glVertexAttribPointer(3, 1, GL_UNSIGNED_INT, GL_FALSE, 1 * sizeof(uint32), (GLvoid*)0);
+            glEnableVertexAttribArray(3);
+
+            // colors
+            glBindBuffer(m_VertexBuffers4[i]->Target(), m_VertexBuffers4[i]->Object());
+            glVertexAttribPointer(4, 1, GL_UNSIGNED_INT, GL_FALSE, 1 * sizeof(uint32), (GLvoid*)0);
+            glEnableVertexAttribArray(4);
+
+            glBindBuffer(GL_ARRAY_BUFFER, 0); 
+            glBindVertexArray(0); 
+        }
+    }
+}
+
+void GLScene::GenIndexBuffers()
+{
+    m_IndexBuffers.resize(m_Meshes.size());
+    for (size_t i = 0; i < m_Meshes.size(); ++i)
+    {
+        m_IndexBuffers[i] = new IndexBuffer();
+        m_IndexBuffers[i]->Upload((uint8*)(m_Meshes[i]->indices.data()), (int32)(m_Meshes[i]->indices.size() * sizeof(uint32)));
+    }
+}
+
+void GLScene::GenTextureArrays()
+{
+    if (m_Images.size() == 0)
+    {
+        ImagePtr image = std::make_shared<Image>();
+        image->comp   = 4;
+        image->height = 8;
+        image->name   = "default";
+        image->width  = 8;
+        for (int32 i = 0; i < 8; ++i)
+        {
+            for (int32 j = 0; j < 8; ++j) 
+            {
+                if ((j & 1) ^ (i & 1)) 
+                {
+                    image->rgba.push_back(0xFF);
+                    image->rgba.push_back(0xFF);
+                    image->rgba.push_back(0xFF);
+                    image->rgba.push_back(0xFF);
+                }
+                else
+                {
+                    image->rgba.push_back(0);
+                    image->rgba.push_back(0);
+                    image->rgba.push_back(0);
+                    image->rgba.push_back(0xFF);
+                }
+            }
+        }
+        AddImage(image);
+    }
+
+    int32 maxWidth  = 0;
+    int32 maxHeight = 0;
+    for (size_t i = 0; i < m_Images.size(); ++i)
+    {
+        auto image = m_Images[i];
+        maxWidth   = MMath::Max(maxWidth,  image->width);
+        maxHeight  = MMath::Max(maxHeight, image->height);
+    }
+
+    std::vector<uint8> tempData;
+    tempData.resize(maxWidth * maxHeight * 4);
+    for (size_t i = 0; i < m_Images.size(); ++i)
+    {
+        auto image = m_Images[i];
+        if (image->width != maxWidth || image->height != maxHeight || image->comp != 4)
+        {
+            stbir_resize_uint8(image->rgba.data(), image->width, image->height, 0, tempData.data(), maxWidth, maxHeight, 0, 4);
+            image->width  = maxWidth;
+            image->height = maxHeight;
+            image->comp   = 4;
+            image->rgba.resize(tempData.size());
+            memcpy(image->rgba.data(), tempData.data(), tempData.size());
+        }
+    }
+
+    std::vector<uint8> arrayData;
+    arrayData.reserve(m_Images.size() * tempData.size());
+    for (size_t i = 0; i < m_Images.size(); ++i)
+    {
+        auto image = m_Images[i];
+        arrayData.insert(arrayData.end(), image->rgba.begin(), image->rgba.end());
+    }
+
+    m_SceneTextures = new GLTexture(GL_TEXTURE_2D_ARRAY, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, maxWidth, maxHeight, (int32)m_Images.size(), arrayData.data());
 }

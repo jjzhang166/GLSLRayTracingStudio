@@ -540,6 +540,18 @@ static void ImportMesh(Scene3DPtr scene, tinygltf::Model& model, Object3DPtr obj
                     colors[i] = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
                 }
             }
+
+            mesh->colors.resize(colors.size());
+            for (size_t i = 0; i < colors.size(); ++i)
+            {
+                // pow(2,10) = 1024
+                uint8 r = uint8(colors[i].x * 255);
+                uint8 g = uint8(colors[i].y * 255);
+                uint8 b = uint8(colors[i].z * 255);
+                uint8 a = uint8(colors[i].w * 255);
+                uint32 val = (r << 24) | (g << 16) | (b << 8) | (a << 0);
+                mesh->colors[i] = val;
+            }
         }
     }
 }
@@ -651,10 +663,10 @@ static void ImportNode(Scene3DPtr scene, tinygltf::Model& model, int32 nodeID, O
         ImportMesh(scene, model, object3D, gltfNode.mesh);
     }
     // camera
-    else if (gltfNode.camera > -1)
-    {
-        ImportCamera(scene, model, object3D, gltfNode);
-    }
+    // else if (gltfNode.camera > -1)
+    // {
+    //     ImportCamera(scene, model, object3D, gltfNode);
+    // }
     // light
     else if (gltfNode.extensions.find(KHR_LIGHTS_PUNCTUAL_EXTENSION_NAME) != gltfNode.extensions.end())
     {
