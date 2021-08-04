@@ -76,6 +76,11 @@ bool UISceneView::Init()
     float fontScale = WindowsMisc::GetDPI() / 96.0f;
     io.Fonts->AddFontFromFileTTF("../assets/fonts/Roboto-Light.ttf", 16.0f * fontScale);
 
+    // panel size
+    m_PanelProjectWidth  = (0.15f * Window()->Width());
+    m_PanelPropertyWidth = (0.15f * Window()->Width());
+    m_PanelAssetsWidth   = (0.20f * Window()->Height());
+
     // load icons
     Icons::Init();
 
