@@ -58,7 +58,7 @@ enum class DebugMode
 
 struct RendererNode
 {
-    Matrix4x4               transform;
+    int32                   nodeID = -1;
     int32                   meshID = -1;
     int32                   materialID = -1;
 };
@@ -192,10 +192,10 @@ struct Mesh
     Bounds3D                aabb = Bounds3D(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 0.0f));
     std::vector<uint32>     indices;
     std::vector<Vector3>    positions;
-    std::vector<uint32>     normals;
+    std::vector<Vector3>    normals;
     std::vector<Vector2>    uvs;
-    std::vector<uint32>     tangents;
-    std::vector<uint32>     colors;
+    std::vector<Vector4>    tangents;
+    std::vector<Vector4>    colors;
 
     void BuildBVH()
     {
@@ -358,6 +358,8 @@ protected:
 struct Object3D
 {
     Object3D();
+
+    int32                   id = -1;
 
     int32                   instanceID = -1;
     std::string             name;

@@ -32,6 +32,7 @@ void GLScene::Free()
     m_TriDataTexWidth = 0;
     m_SceneBounds     = Bounds3D(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 0.0f));
 
+    m_Nodes.clear();
     m_Meshes.clear();
     m_Materials.clear();
     m_Lights.clear();
@@ -106,6 +107,11 @@ void GLScene::AddScene(Scene3DPtr scene3D)
         AddMesh(scene3D->meshes[i]);
     }
 
+    for (size_t i = 0; i < scene3D->nodes.size(); ++i)
+    {
+        AddNode(scene3D->nodes[i]);
+    }
+
     for (size_t i = 0; i < scene3D->images.size(); ++i)
     {
         AddImage(scene3D->images[i]);
@@ -138,7 +144,7 @@ void GLScene::AddScene(Scene3DPtr scene3D)
         {
             auto mesh = node->meshes[j];
             auto mat  = node->materials[j];
-            AddRenderer(mesh->id, mat->id, node->GlobalTransform());
+            AddRenderer(mesh->id, mat->id, node->id);
         }
     }
 
@@ -158,6 +164,14 @@ int32 GLScene::AddMesh(MeshPtr mesh)
     int32 id = (int32)m_Meshes.size();
     mesh->id = id;
     m_Meshes.push_back(mesh);
+    return id;
+}
+
+int32 GLScene::AddNode(Object3DPtr node)
+{
+    int32 id = (int32)m_Nodes.size();
+    node->id = id;
+    m_Nodes.push_back(node);
     return id;
 }
 
@@ -185,12 +199,12 @@ int32 GLScene::AddMaterial(MaterialPtr material)
     return id;
 }
 
-int32 GLScene::AddRenderer(int32 mesh, int32 material, const Matrix4x4& transform)
+int32 GLScene::AddRenderer(int32 mesh, int32 material, int32 node)
 {
     RendererNode render;
     render.materialID = material;
     render.meshID     = mesh;
-    render.transform  = transform;
+    render.nodeID     = node;
 
     int32 id = (int32)m_Renderers.size();
     m_Renderers.push_back(render);
@@ -246,7 +260,6 @@ void GLScene::BuildMesheDatas()
     }
 
     // Resize to power of 2
-    // TODO:pack data
     m_IndicesTexWidth = (int32)(MMath::Sqrt((float)m_Indices.size()) + 1);
     m_TriDataTexWidth = (int32)(MMath::Sqrt((float)m_Positions.size()) + 1);
 
@@ -276,7 +289,7 @@ void GLScene::BuildRendererDatas()
     m_Transforms.resize(m_Renderers.size());
     for (int32 i = 0; i < m_Renderers.size(); i++) 
     {
-        m_Transforms[i] = m_Renderers[i].transform;
+        m_Transforms[i] = m_Nodes[m_Renderers[i].nodeID]->GlobalTransform();
     }
 }
 
@@ -288,7 +301,7 @@ void GLScene::RebuildRendererDatas()
 
     for (int32 i = 0; i < m_Renderers.size(); i++) 
     {
-        m_Transforms[i] = m_Renderers[i].transform;
+        m_Transforms[i] = m_Nodes[m_Renderers[i].nodeID]->GlobalTransform();
     }
 }
 
@@ -300,7 +313,7 @@ void GLScene::CreateTLAS()
     for (size_t i = 0; i < m_Renderers.size(); i++)
     {
         Bounds3D aabb    = m_Meshes[m_Renderers[i].meshID]->bvh->Bounds();
-        Matrix4x4 matrix = m_Renderers[i].transform;
+        Matrix4x4 matrix = m_Nodes[m_Renderers[i].nodeID]->GlobalTransform();
         Vector3 minBound = aabb.min;
         Vector3 maxBound = aabb.max;
 
@@ -384,7 +397,7 @@ void GLScene::GenVertexBuffers()
 
             // normals
             glBindBuffer(m_VertexBuffers1[i]->Target(), m_VertexBuffers1[i]->Object());
-            glVertexAttribPointer(1, 1, GL_UNSIGNED_INT, GL_FALSE, 1 * sizeof(uint32), (GLvoid*)0);
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (GLvoid*)0);
             glEnableVertexAttribArray(1);
 
             // uvs
@@ -394,12 +407,12 @@ void GLScene::GenVertexBuffers()
 
             // tangents
             glBindBuffer(m_VertexBuffers3[i]->Target(), m_VertexBuffers3[i]->Object());
-            glVertexAttribPointer(3, 1, GL_UNSIGNED_INT, GL_FALSE, 1 * sizeof(uint32), (GLvoid*)0);
+            glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (GLvoid*)0);
             glEnableVertexAttribArray(3);
 
             // colors
             glBindBuffer(m_VertexBuffers4[i]->Target(), m_VertexBuffers4[i]->Object());
-            glVertexAttribPointer(4, 1, GL_UNSIGNED_INT, GL_FALSE, 1 * sizeof(uint32), (GLvoid*)0);
+            glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (GLvoid*)0);
             glEnableVertexAttribArray(4);
 
             glBindBuffer(GL_ARRAY_BUFFER, 0); 

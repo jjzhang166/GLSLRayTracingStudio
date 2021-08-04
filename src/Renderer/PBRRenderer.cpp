@@ -32,6 +32,7 @@ void PBRRenderer::Render()
         return;
     }
 
+    const auto& nodes        = m_Scene->Nodes();
     const auto& meshes       = m_Scene->Meshes();
     const auto& renderers    = m_Scene->Renderers();
     const auto& vaos         = m_Scene->VAOs();
@@ -48,7 +49,7 @@ void PBRRenderer::Render()
         const auto& mesh        = meshes[renderNode.meshID];
         const auto& indexBuffer = indexBuffers[renderNode.meshID];
         const auto& vao         = vaos[renderNode.meshID];
-        const auto& model       = renderNode.transform;
+        const auto& model       = nodes[renderNode.nodeID]->GlobalTransform();
 
         // mvp loc
         {

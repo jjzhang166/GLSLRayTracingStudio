@@ -11,7 +11,7 @@ ProjectPanel::ProjectPanel(UISceneView* uiview, GLScenePtr scene)
     , m_IconSize(18.0f, 18.0f)
     , m_SelectID(-1)
 {
-
+    
 }
 
 ProjectPanel::~ProjectPanel()
@@ -125,6 +125,10 @@ bool ProjectPanel::TreeNode(int32 id, const char* name, IconName icon)
 
 void ProjectPanel::Draw()
 {
+    ImVec2 txtSize = ImGui::CalcTextSize("A");
+    m_IconSize.x   = txtSize.y;
+    m_IconSize.y   = txtSize.y;
+
     Scene3DArray& scenes = m_Scene->GetScenes();
 
     ImGui::Spacing();

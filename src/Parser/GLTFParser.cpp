@@ -422,16 +422,7 @@ static void ImportMesh(Scene3DPtr scene, tinygltf::Model& model, Object3DPtr obj
             mesh->normals.resize(normals.size());
             for (size_t i = 0; i < normals.size(); ++i)
             {
-                // pow(2,10) = 1024
-                Vector3 normal = (normals[i] + 1.0f) * 0.5f;
-                uint8 r = uint8(normal.x * 1024);
-                uint8 g = uint8(normal.y * 1024);
-                uint8 b = uint8(normal.z * 1024);
-                uint32 val = (r << 20) | (g << 10) | (b);
-                mesh->normals[i] = val;
-                // uint16 r0 = (val >> 20) & 1023;
-                // uint16 g1 = (val >> 10) & 1023;
-                // uint16 b1 = (val >>  0) & 1023;
+                mesh->normals[i] = normals[i];
             }
         }
 
@@ -500,12 +491,7 @@ static void ImportMesh(Scene3DPtr scene, tinygltf::Model& model, Object3DPtr obj
                 tangents.resize(mesh->positions.size());
                 for (size_t i = 0; i < mesh->positions.size(); ++i)
                 {
-                    const auto& normal = mesh->normals[i];
-                    uint16 red   = (normal >> 20) & 1023;
-                    uint16 green = (normal >> 10) & 1023;
-                    uint16 blue  = (normal >>  0) & 1023;
-                    Vector3 n    = Vector3(red / 1024.0f, green / 1024.0f, blue / 1024.0f) * 2.0f - 1.0f;
-
+                    const auto& n = mesh->normals[i];
                     const auto& t = tempTangents[i];
                     const auto& b = tempBitangents[i];
 
@@ -519,13 +505,7 @@ static void ImportMesh(Scene3DPtr scene, tinygltf::Model& model, Object3DPtr obj
             mesh->tangents.resize(tangents.size());
             for (size_t i = 0; i < tangents.size(); ++i)
             {
-                Vector3 tangent = (tangents[i] + Vector4(1.0f, 1.0f, 1.0f, 1.0f)) * 0.5f;
-                uint8 r = uint8(tangent.x * 1024);
-                uint8 g = uint8(tangent.y * 1024);
-                uint8 b = uint8(tangent.z * 1024);
-                uint8 a = tangents[i].w > 0.0f ? 1 : 0;
-                uint32 val = (a << 30) | (r << 20) | (g << 10) | (b);
-                mesh->tangents[i] = val;
+                mesh->tangents[i] = tangents[i];
             }
         }
 
@@ -544,13 +524,7 @@ static void ImportMesh(Scene3DPtr scene, tinygltf::Model& model, Object3DPtr obj
             mesh->colors.resize(colors.size());
             for (size_t i = 0; i < colors.size(); ++i)
             {
-                // pow(2,10) = 1024
-                uint8 r = uint8(colors[i].x * 255);
-                uint8 g = uint8(colors[i].y * 255);
-                uint8 b = uint8(colors[i].z * 255);
-                uint8 a = uint8(colors[i].w * 255);
-                uint32 val = (r << 24) | (g << 16) | (b << 8) | (a << 0);
-                mesh->colors[i] = val;
+                mesh->colors[i] = colors[i];
             }
         }
     }

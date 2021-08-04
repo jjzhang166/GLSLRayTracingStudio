@@ -81,6 +81,9 @@ void PropertyPanel::DrawPropertyTransform(Object3DPtr node)
         Vector4 sca;
         Vector4 rot;
         transform.Decompose(Matrix4x4::Style::EulerAngles, pos, sca, rot);
+        rot.x = MMath::RadiansToDegrees(rot.x);
+        rot.y = MMath::RadiansToDegrees(rot.y);
+        rot.z = MMath::RadiansToDegrees(rot.z);
 
         // position
         {
@@ -103,6 +106,9 @@ void PropertyPanel::DrawPropertyTransform(Object3DPtr node)
             ImGui::DragFloat3("##TransformScale", (float*)&sca);
         }
 
+        rot.x = MMath::DegreesToRadians(rot.x);
+        rot.y = MMath::DegreesToRadians(rot.y);
+        rot.z = MMath::DegreesToRadians(rot.z);
         transform.Recompose(pos, sca, rot);
     }
 }
