@@ -354,6 +354,7 @@ void PropertyPanel::Draw(int32 instanceID)
     if (instanceID == -1)
     {
         DrawSceneSettings();
+        DrawPropertyCamera(m_Scene->GetCamera());
         return;
     }
 

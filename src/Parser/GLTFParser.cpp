@@ -530,30 +530,6 @@ static void ImportMesh(Scene3DPtr scene, tinygltf::Model& model, Object3DPtr obj
     }
 }
 
-static void ImportCamera(Scene3DPtr scene, tinygltf::Model& model, Object3DPtr object3D, tinygltf::Node& gltfNode)
-{
-    const auto& gltfCamera = model.cameras[gltfNode.camera];
-    
-    // perspective
-    if (gltfCamera.type == "perspective")
-    {
-        std::shared_ptr<Camera> camera = std::make_shared<Camera>();
-        
-        // add to scene
-        {
-            object3D->camera = camera;
-            scene->cameras.push_back(camera);
-        }
-
-        camera->node = object3D;
-        camera->Perspective((float)gltfCamera.perspective.yfov, 1.0f, (float)gltfCamera.perspective.znear, (float)gltfCamera.perspective.zfar);
-    }
-    else
-    {
-        // not support
-    }
-}
-
 static void ImportLight(Scene3DPtr scene, tinygltf::Model& model, Object3DPtr object3D, tinygltf::Node& gltfNode)
 {
     auto& extension = gltfNode.extensions.find(KHR_LIGHTS_PUNCTUAL_EXTENSION_NAME)->second;
@@ -782,36 +758,6 @@ static void CalcSceneDimensions(Scene3DPtr scene)
     }
 }
 
-static void FitSceneCamera(Scene3DPtr scene)
-{
-    if (scene->cameras.size() != 0)
-    {
-        return;
-    }
-
-    CameraPtr camera = std::make_shared<Camera>();
-    camera->Perspective(MMath::DegreesToRadians(60.0f), 1.0f, 0.1f, 3000.0f);
-
-    // add to scene
-    Object3DPtr node = std::make_shared<Object3D>();
-    node->name   = "DefaultCamera";
-    node->camera = camera;
-    node->parent = scene->rootNode;
-    camera->node = node;
-
-    scene->rootNode->children.push_back(node);
-    scene->nodes.push_back(node);
-    scene->cameras.push_back(camera);
-
-    // update position
-    Vector3 center = scene->bounds.Center();
-    Vector3 extent = scene->bounds.Extents();
-    Vector3 eye    = Vector3(center.x, center.y, center.z - extent.Size() * 1.0f);
-    Vector3 at     = center;
-    node->transform.SetPosition(eye);
-    node->transform.LookAt(center);
-}
-
 static void BuildBottomLevelAS(Scene3DPtr scene)
 {
     if (scene->meshes.size() == 0)
@@ -917,6 +863,5 @@ void LoadGLTFJob::DoThreadedWork()
     ImportImages(m_Scene3D, tinyModel);
     ImportTextures(m_Scene3D, tinyModel);
     CalcSceneDimensions(m_Scene3D);
-    FitSceneCamera(m_Scene3D);
     BuildBottomLevelAS(m_Scene3D);
 }

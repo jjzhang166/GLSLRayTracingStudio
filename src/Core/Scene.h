@@ -25,8 +25,6 @@ public:
 
     void Free();
 
-    void SetCamera(CameraPtr camera);
-
     int32 AddMesh(MeshPtr mesh);
 
     int32 AddNode(Object3DPtr node);
@@ -120,6 +118,8 @@ public:
     }
 
 private:
+
+    void FitCamera();
 
     void CreateBLAS();
 

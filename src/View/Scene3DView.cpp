@@ -41,7 +41,30 @@ void Scene3DView::Destroy()
 
 void Scene3DView::OnUpdate()
 {
+    static double lastTime = ImGui::GetTime();
+    double currTime = ImGui::GetTime();
+    double deltaTime = currTime - lastTime;
+    lastTime = currTime;
 
+    if (m_Scene->GetCamera() == nullptr)
+    {
+        return;
+    }
+
+    auto camera  = m_Scene->GetCamera();
+    auto rect    = Window()->GetUISceneView()->ViewPort3D();
+    ImVec2 mouse = ImGui::GetMousePos();
+
+    if (!rect.Contains(mouse.x, mouse.y))
+    {
+        return;
+    }
+
+    camera->OnMousePos(Vector2(mouse.x, mouse.y));
+    camera->OnRMouse(ImGui::IsMouseDown(1));
+	camera->OnMMouse(ImGui::IsMouseDown(2));
+	camera->OnMouseWheel(ImGui::GetIO().MouseWheel);
+    camera->Update((float)deltaTime);
 }
 
 void Scene3DView::OnRender()

@@ -113,11 +113,9 @@ Camera::Camera()
 
 void Camera::GetGizmoViewProjection(float* view, float* projection)
 {
-    Matrix4x4 global = node->GlobalTransform();
-
-    Vector3 at = global.GetOrigin() + global.GetForward();
-    Vector3 p  = global.GetOrigin();
-    Vector3 up = global.GetUp();
+    Vector3 at = m_Transform.GetOrigin() + m_Transform.GetForward();
+    Vector3 p  = m_Transform.GetOrigin();
+    Vector3 up = m_Transform.GetUp();
     GizmoLookAt((float*)&p, (float*)&at, (float*)&up, view);
 
     float ratio = m_Aspect;
@@ -152,23 +150,23 @@ void Camera::Update(float delta)
 
     if (m_MMouseDown)
     {
-        node->transform.TranslateX(+mouseSpeedX * node->transform.GetOrigin().Size() / 300);
-        node->transform.TranslateY(+mouseSpeedY * node->transform.GetOrigin().Size() / 300);
+        m_Transform.TranslateX(-mouseSpeedX * m_Transform.GetOrigin().Size() / 300);
+        m_Transform.TranslateY(+mouseSpeedY * m_Transform.GetOrigin().Size() / 300);
     }
     else if (m_RMouseDown)
     {
-        m_SpinX += -mouseSpeedX * smooth * speedFactor;
+        m_SpinX += +mouseSpeedX * smooth * speedFactor;
         m_SpinY += +mouseSpeedY * smooth * speedFactor;
     }
 
     if (m_MouseWheel != 0.0f) 
     {
-        m_SpinZ = (node->transform.GetOrigin().Size() + 0.1f) * speedFactor * m_MouseWheel / 20.0f;
+        m_SpinZ = (m_Transform.GetOrigin().Size() + 0.1f) * speedFactor * m_MouseWheel / 20.0f;
     }
 
-    node->transform.TranslateZ(m_SpinZ);
-    node->transform.RotateY(m_SpinX, false, &Vector3::ZeroVector);
-    node->transform.RotateX(m_SpinY, true,  &Vector3::ZeroVector);
+    m_Transform.TranslateZ(m_SpinZ);
+    m_Transform.RotateY(m_SpinX, false, &Vector3::ZeroVector);
+    m_Transform.RotateX(m_SpinY, true,  &Vector3::ZeroVector);
 
     if ((m_SpinX != 0.0f || m_SpinY != 0.0f || m_SpinZ != 0.0f) || m_MMouseDown) 
     {
@@ -184,32 +182,32 @@ void Camera::Update(float delta)
 
 void Camera::TranslateX(float distance)
 {
-    node->transform.TranslateX(distance);
+    m_Transform.TranslateX(distance);
 }
 
 void Camera::TranslateY(float distance)
 {
-    node->transform.TranslateY(distance);
+    m_Transform.TranslateY(distance);
 }
 
 void Camera::TranslateZ(float distance)
 {
-    node->transform.TranslateZ(distance);
+    m_Transform.TranslateZ(distance);
 }
 
 void Camera::RotateX(float angle)
 {
-    node->transform.RotateX(angle);
+    m_Transform.RotateX(angle);
 }
 
 void Camera::RotateY(float angle)
 {
-    node->transform.RotateY(angle);
+    m_Transform.RotateY(angle);
 }
 
 void Camera::RotateZ(float angle)
 {
-    node->transform.RotateZ(angle);
+    m_Transform.RotateZ(angle);
 }
 
 void Camera::LookAt(float x, float y, float z, float smooth)
@@ -219,126 +217,77 @@ void Camera::LookAt(float x, float y, float z, float smooth)
 
 void Camera::LookAt(const Vector3& target, float smooth)
 {
-    node->transform.LookAt(target, nullptr, smooth);
+    m_Transform.LookAt(target, nullptr, smooth);
 }
 
 void Camera::LookAt(const Vector3& target, const Vector3& up, float smooth)
 {
-    node->transform.LookAt(target, &up, smooth);
+    m_Transform.LookAt(target, &up, smooth);
 }
 
-Vector3 Camera::GetPosition(bool local)
+Vector3 Camera::GetPosition()
 {
-    if (local)
-    {
-        return node->transform.GetOrigin();
-    }
-    else
-    {
-        return node->GlobalTransform().GetOrigin();
-    }
+    return m_Transform.GetOrigin();
 }
 
 void Camera::SetPosition(const Vector3& pos)
 {
-    node->transform.SetPosition(pos);
+    m_Transform.SetPosition(pos);
 }
 
 void Camera::SetPosition(float x, float y, float z)
 {
-    node->transform.SetPosition(Vector3(x, y, z));
+    m_Transform.SetPosition(Vector3(x, y, z));
 }
 
 void Camera::SetOrientation(const Vector3& dir)
 {
-    node->transform.SetOrientation(dir, &Vector3::UpVector, 1.0f);
+    m_Transform.SetOrientation(dir, &Vector3::UpVector, 1.0f);
 }
 
 void Camera::SetRotation(const Vector3& rotation)
 {
-    node->transform.SetRotation(rotation);
+    m_Transform.SetRotation(rotation);
 }
 
 void Camera::SetRotation(float eulerX, float eulerY, float eulerZ)
 {
-    node->transform.SetRotation(Vector3(eulerX, eulerY, eulerZ));
+    m_Transform.SetRotation(Vector3(eulerX, eulerY, eulerZ));
 }
 
-Vector3 Camera::GetRight(bool local) const
+Vector3 Camera::GetRight() const
 {
-    if (local)
-    {
-        return node->transform.GetRight();
-    }
-    else
-    {
-        return node->GlobalTransform().GetRight();
-    }
+    return m_Transform.GetRight();
 }
 
-Vector3 Camera::GetUp(bool local) const
+Vector3 Camera::GetUp() const
 {
-    if (local)
-    {
-        return node->transform.GetUp();
-    }
-    else
-    {
-        return node->GlobalTransform().GetUp();
-    }
+    return m_Transform.GetUp();
 }
 
-Vector3 Camera::GetForward(bool local) const
+Vector3 Camera::GetForward() const
 {
-    if (local)
-    {
-        return node->transform.GetForward();
-    }
-    else
-    {
-        return node->GlobalTransform().GetForward();
-    }
+    return m_Transform.GetForward();
 }
 
-Vector3 Camera::GetLeft(bool local) const
+Vector3 Camera::GetLeft() const
 {
-    if (local)
-    {
-        return node->transform.GetLeft();
-    }
-    else
-    {
-        return node->GlobalTransform().GetLeft();
-    }
+    return m_Transform.GetLeft();
 }
 
-Vector3 Camera::GetBackward(bool local) const
+Vector3 Camera::GetBackward() const
 {
-    if (local)
-    {
-        return node->transform.GetBackward();
-    }
-    else
-    {
-        return node->GlobalTransform().GetBackward();
-    }
+    return m_Transform.GetBackward();
 }
 
-Vector3 Camera::GetDown(bool local) const
+Vector3 Camera::GetDown() const
 {
-    if (local)
-    {
-        return node->transform.GetDown();
-    }
-    else
-    {
-        return node->GlobalTransform().GetDown();
-    }
+    return m_Transform.GetDown();
 }
 
 const Matrix4x4& Camera::GetView()
 {
-    m_View = node->GlobalTransform().Inverse();
+    m_View = m_Transform.Inverse();
     return m_View;
 }
 
@@ -349,26 +298,19 @@ const Matrix4x4& Camera::GetProjection()
 
 const Matrix4x4& Camera::GetViewProjection()
 {
-    m_View = node->GlobalTransform().Inverse();
+    m_View = m_Transform.Inverse();
     m_ViewProjection = m_View * m_Projection;
     return m_ViewProjection;
 }
 
 void Camera::SetTransform(const Matrix4x4& world)
 {
-    node->transform = world;
+    m_Transform = world;
 }
 
-Matrix4x4 Camera::GetTransform(bool local)
+Matrix4x4 Camera::GetTransform()
 {
-    if (local)
-    {
-        return node->transform;
-    }
-    else
-    {
-        return node->GlobalTransform();
-    }
+    return m_Transform;
 }
 
 void Camera::Perspective(float fovy, float aspect, float zNear, float zFar)

@@ -9,7 +9,6 @@
 #include <algorithm>
 
 GLScene::GLScene()
-    : m_SceneTextures(nullptr)
 {
     
 }
@@ -21,6 +20,12 @@ GLScene::~GLScene()
 
 bool GLScene::Init()
 {
+    m_SceneTextures = nullptr;
+
+    // camera
+    m_Camera = std::make_shared<Camera>();
+    m_Camera->Perspective(MMath::DegreesToRadians(60.0f), 1.0f, 0.1f, 3000.0f);
+
     return true;
 }
 
@@ -148,15 +153,34 @@ void GLScene::AddScene(Scene3DPtr scene3D)
         }
     }
 
-    if (m_Camera == nullptr)
-    {
-        SetCamera(scene3D->cameras[0]);
-    }
+    FitCamera();
 }
 
-void GLScene::SetCamera(CameraPtr inCamera)
+void GLScene::FitCamera()
 {
-    m_Camera = inCamera;
+    Bounds3D bounds;
+    for (size_t i = 0; i < m_Scenes.size(); ++i)
+    {
+        if (i == 0)
+        {
+            bounds = m_Scenes[i]->bounds;
+        }
+        else
+        {
+            bounds.Expand(m_Scenes[i]->bounds.min);
+            bounds.Expand(m_Scenes[i]->bounds.max);
+        }
+    }
+
+    // update position
+    Vector3 center = bounds.Center();
+    Vector3 extent = bounds.Extents();
+    Vector3 eye    = Vector3(center.x, center.y, center.z - extent.Size() * 1.0f);
+    Vector3 at     = center;
+
+    // set up camera
+    m_Camera->SetPosition(eye);
+    m_Camera->LookAt(center);
 }
 
 int32 GLScene::AddMesh(MeshPtr mesh)

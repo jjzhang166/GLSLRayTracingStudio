@@ -245,7 +245,7 @@ public:
 
     void LookAt(const Vector3& target, const Vector3& up, float smooth = 1.0f);
 
-    Vector3 GetPosition(bool local = true);
+    Vector3 GetPosition();
 
     void SetPosition(const Vector3& pos);
 
@@ -257,17 +257,17 @@ public:
 
     void SetRotation(float eulerX, float eulerY, float eulerZ);
 
-    Vector3 GetRight(bool local = true) const;
+    Vector3 GetRight() const;
 
-    Vector3 GetUp(bool local = true) const;
+    Vector3 GetUp() const;
 
-    Vector3 GetForward(bool local = true) const;
+    Vector3 GetForward() const;
 
-    Vector3 GetLeft(bool local = true) const;
+    Vector3 GetLeft() const;
 
-    Vector3 GetBackward(bool local = true) const;
+    Vector3 GetBackward() const;
 
-    Vector3 GetDown(bool local = true) const;
+    Vector3 GetDown() const;
 
     const Matrix4x4& GetView();
 
@@ -277,7 +277,7 @@ public:
 
     void SetTransform(const Matrix4x4& world);
 
-    Matrix4x4 GetTransform(bool local = true);
+    Matrix4x4 GetTransform();
 
     void Perspective(float fovy, float aspect, float zNear, float zFar);
 
@@ -319,8 +319,6 @@ public:
 
 public:
 
-    Object3DPtr             node = nullptr;
-
     float		            smooth = 1.0f;
     float		            speed = 1.0f;
     float		            speedFactor = 0.5f;
@@ -342,7 +340,8 @@ protected:
     float		            m_SpinX = 0.0f;
     float		            m_SpinY = 0.0f;
     float		            m_SpinZ = 0.0f;
-    
+
+    Matrix4x4               m_Transform;
     Matrix4x4	            m_View;
     Matrix4x4	            m_Projection;
     Matrix4x4	            m_ViewProjection;
