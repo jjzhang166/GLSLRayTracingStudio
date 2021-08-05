@@ -47,7 +47,7 @@ set(ALL_LIBS
 )
 
 # assets
-file(GLOB files "${CMAKE_CURRENT_SOURCE_DIR}/assets/*.*" "${CMAKE_CURRENT_SOURCE_DIR}/assets/*/*.*")
+file(GLOB_RECURSE files "${CMAKE_CURRENT_SOURCE_DIR}/assets/*.*" "${CMAKE_CURRENT_SOURCE_DIR}/assets/*/*.*")
 foreach(file ${files})
     SET(ASSETS
         ${ASSETS}

@@ -126,10 +126,12 @@ set(PARSER_SRCS
 )
 
 set(RENDERER_HDRS
+    Renderer/IBLSampler.h
     Renderer/PBRRenderer.h
     Renderer/RayTracingRenderer.h
 )
 set(RENDERER_SRCS
+    Renderer/IBLSampler.cpp
     Renderer/PBRRenderer.cpp
     Renderer/RayTracingRenderer.cpp
 )

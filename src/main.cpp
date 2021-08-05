@@ -5,6 +5,7 @@
 #include "View/Scene3DView.h"
 #include "Misc/WindowsMisc.h"
 #include "Misc/JobManager.h"
+#include "Misc/FileMisc.h"
 #include "Core/Shader.h"
 #include "Core/Scene.h"
 
@@ -12,9 +13,11 @@
 #include <stdlib.h>
 #include <memory>
 
-int32 main(int32, char**)
+int32 main(int32 argc, char** argv)
 {
     LOGD("Hello GLSLRayTracingStudio\n");
+
+    SetExePath(argv[0]);
 
     // init job manager
     JobManager::Init(8);

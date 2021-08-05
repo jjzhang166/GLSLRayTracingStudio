@@ -54,8 +54,13 @@ bool UISceneView::Init()
     io.ConfigWindowsResizeFromEdges = false;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
-    io.IniFilename = "../imgui.ini"; 
-    io.LogFilename = "../imgui.log";
+
+    {
+        static std::string iniPath = GetRootPath() + "imgui.ini";
+        static std::string logPath = GetRootPath() + "imgui.log";
+        io.IniFilename = iniPath.c_str(); 
+        io.LogFilename = logPath.c_str();
+    }
 
     // style
     {

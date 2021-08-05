@@ -26,11 +26,12 @@ GLProgram::GLProgram(const GLShaderArray& shaders)
         glGetProgramiv(m_Object, GL_INFO_LOG_LENGTH, &logSize);
         char* info = new char[logSize + 1];
         glGetShaderInfoLog(m_Object, logSize, NULL, info);
+        info[logSize] = '\0';
         msg += info;
         delete[] info;
         glDeleteProgram(m_Object);
         m_Object = 0;
-        LOGE("%s", msg.c_str());
+        LOGE("%s\n", msg.c_str());
     }
 }
 

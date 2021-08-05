@@ -1,13 +1,13 @@
 ﻿#include "Renderer/PBRRenderer.h"
-
+#include "Misc/FileMisc.h"
 #include "Core/Scene.h"
 
 void PBRRenderer::Init()
 {
     // shader
     {
-        GLShaderPtr vertShader = std::make_shared<GLShader>("../assets/shaders/pbr/vert.glsl", GL_VERTEX_SHADER);
-        GLShaderPtr fragShader = std::make_shared<GLShader>("../assets/shaders/pbr/frag.glsl", GL_FRAGMENT_SHADER);
+        GLShaderPtr vertShader = std::make_shared<GLShader>(GetRootPath() + "assets/shaders/pbr/vert.glsl", GL_VERTEX_SHADER);
+        GLShaderPtr fragShader = std::make_shared<GLShader>(GetRootPath() + "assets/shaders/pbr/frag.glsl", GL_FRAGMENT_SHADER);
         std::vector<GLShaderPtr> shaders;
         shaders.push_back(vertShader);
         shaders.push_back(fragShader);
@@ -61,6 +61,7 @@ void PBRRenderer::Render()
         glBindVertexArray(vao);
         glBindBuffer(indexBuffer->Target(), indexBuffer->Object());
         glDrawElements(GL_TRIANGLES, (GLsizei)(mesh->indices.size()), GL_UNSIGNED_INT, (void*)(0));
+        glBindVertexArray(0);
     }
 
     m_PBRShader->Deactive();

@@ -11,6 +11,8 @@
 #include "Parser/GLTFParser.h"
 #include "Parser/HDRParser.h"
 
+#include "Renderer/IBLSampler.h"
+
 #include "imgui.h"
 #include "imgui_internal.h"
 
@@ -145,6 +147,9 @@ void MainMenuBar::Draw()
                     {
                         LOGI("HDR load complete : %s\n", fileName.c_str());
                         m_Scene->AddHDR(hdrJob->GetHDRImage());
+
+                        IBLSampler sampler;
+                        sampler.Init(hdrJob->GetHDRImage());
                     };
 
                     JobManager::AddJob(hdrJob);

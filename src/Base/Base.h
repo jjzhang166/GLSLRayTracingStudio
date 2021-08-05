@@ -102,8 +102,8 @@ struct HDRImage
     int32                   width;
     int32                   height;
     int32                   component;
-    std::vector<float>      hdrRGBA;
-    std::vector<float>      envRGBA;
+    std::vector<float>      hdrRGB;
+    std::vector<float>      envRGB;
 };
 
 struct Texture

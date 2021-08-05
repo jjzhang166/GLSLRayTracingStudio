@@ -439,8 +439,8 @@ void GLScene::GenVertexBuffers()
             glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (GLvoid*)0);
             glEnableVertexAttribArray(4);
 
-            glBindBuffer(GL_ARRAY_BUFFER, 0); 
-            glBindVertexArray(0); 
+            glBindVertexArray(0);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
         }
     }
 }
