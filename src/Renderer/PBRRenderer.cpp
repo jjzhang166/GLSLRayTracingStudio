@@ -6,18 +6,26 @@ void PBRRenderer::Init()
 {
     // shader
     {
-        GLShaderPtr vertShader = std::make_shared<GLShader>(GetRootPath() + "assets/shaders/pbr/vert.glsl", GL_VERTEX_SHADER);
-        GLShaderPtr fragShader = std::make_shared<GLShader>(GetRootPath() + "assets/shaders/pbr/frag.glsl", GL_FRAGMENT_SHADER);
-        std::vector<GLShaderPtr> shaders;
+        std::shared_ptr<GLShader> vertShader = std::make_shared<GLShader>(GetRootPath() + "assets/shaders/pbr/vert.glsl", GL_VERTEX_SHADER);
+        std::shared_ptr<GLShader> fragShader = std::make_shared<GLShader>(GetRootPath() + "assets/shaders/pbr/frag.glsl", GL_FRAGMENT_SHADER);
+        std::vector<std::shared_ptr<GLShader>> shaders;
         shaders.push_back(vertShader);
         shaders.push_back(fragShader);
-        m_PBRShader = std::make_shared<GLProgram>(shaders);
+        m_PBRShader = new GLProgram(shaders);
     }
+
+    m_Skybox = new SkyBox();
+    m_Skybox->Init();
 }
 
 void PBRRenderer::Destroy()
 {
-    m_Scene = nullptr;
+    m_Skybox->Destroy();
+    delete m_Skybox;
+    m_Skybox = nullptr;
+
+    delete m_PBRShader;
+    m_PBRShader = nullptr;
 }
 
 void PBRRenderer::Update()
@@ -25,13 +33,13 @@ void PBRRenderer::Update()
 
 }
 
-void PBRRenderer::Render()
+void PBRRenderer::RenderSkybox()
 {
-    if (m_Scene->Renderers().size() == 0 || m_Scene->GetCamera() == nullptr)
-    {
-        return;
-    }
+    m_Skybox->Draw(m_Scene->GetCamera(), m_Scene->IBLs()[0]);
+}
 
+void PBRRenderer::RenderOpaqueEntites()
+{
     const auto& nodes        = m_Scene->Nodes();
     const auto& meshes       = m_Scene->Meshes();
     const auto& renderers    = m_Scene->Renderers();
@@ -49,14 +57,10 @@ void PBRRenderer::Render()
         const auto& mesh        = meshes[renderNode.meshID];
         const auto& indexBuffer = indexBuffers[renderNode.meshID];
         const auto& vao         = vaos[renderNode.meshID];
-        const auto& model       = nodes[renderNode.nodeID]->GlobalTransform();
+        const auto& model       = nodes[renderNode.nodeID]->GetGlobalTransform();
+        Matrix4x4 mvp           = model * view * proj;
 
-        // mvp loc
-        {
-            auto mvp  = model * view * proj;
-            GLint loc = glGetUniformLocation(m_PBRShader->Object(), "mvp");
-            glUniformMatrix4fv(loc, 1, GL_FALSE, &(mvp.m[0][0]));
-        }
+        m_PBRShader->SetUniform4x4f("_MVP", mvp);
 
         glBindVertexArray(vao);
         glBindBuffer(indexBuffer->Target(), indexBuffer->Object());
@@ -65,6 +69,19 @@ void PBRRenderer::Render()
     }
 
     m_PBRShader->Deactive();
+}
+
+void PBRRenderer::RenderBlendEntites()
+{
+
+
+}
+
+void PBRRenderer::Render()
+{
+    RenderOpaqueEntites();
+    RenderBlendEntites();
+    RenderSkybox();
 }
 
 void PBRRenderer::SetScene(GLScenePtr scene)

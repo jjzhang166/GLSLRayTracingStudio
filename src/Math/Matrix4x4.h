@@ -159,7 +159,7 @@ public:
 
     FORCEINLINE void ScaleZ(float scale);
 
-    FORCEINLINE void SetScale(const Vector3& scale, float smooth);
+    FORCEINLINE void SetScale(const Vector3& scale, float smooth = 1.0f);
 
     FORCEINLINE Matrix4x4 RemoveTranslation() const;
 

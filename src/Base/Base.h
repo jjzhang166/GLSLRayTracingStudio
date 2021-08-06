@@ -369,20 +369,55 @@ struct Object3D
     Object3DArray           children;
     MaterialArray           materials;
     MeshArray               meshes;
+
+    Matrix4x4               globalTransform;
+    bool                    globalTransformDirty = true;
    
-    Matrix4x4 GlobalTransform()
+    const Matrix4x4& GetGlobalTransform()
     {
-        Matrix4x4 globalTransform = transform;
-        if (parent)
+        if (globalTransformDirty)
         {
-            globalTransform.Append(parent->GlobalTransform());
+            globalTransformDirty = false;
+            globalTransform = transform;
+            if (parent)
+            {
+                globalTransform.Append(parent->GetGlobalTransform());
+            }
         }
+
         return globalTransform;
     }
 
-    Matrix4x4 LocalTransform()
+    const Matrix4x4& GetLocalTransform()
     {
         return transform;
+    }
+
+    void SetPosition(const Vector3& pos)
+    {
+        transform.SetPosition(pos);
+        InvalidTransform();
+    }
+
+    void SetRotation(const Vector3& rot)
+    {
+        transform.SetRotation(rot);
+        InvalidTransform();
+    }
+
+    void SetScale(const Vector3& sca)
+    {
+        transform.SetScale(sca);
+        InvalidTransform();
+    }
+
+    void InvalidTransform()
+    {
+        globalTransformDirty = true;
+        for (size_t i = 0; i < children.size(); ++i)
+        {
+            children[i]->InvalidTransform();
+        }
     }
 };
 

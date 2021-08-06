@@ -75,41 +75,39 @@ void PropertyPanel::DrawPropertyTransform(Object3DPtr node)
 
     if (transformOpend)
     {
-        Matrix4x4& transform = node->transform;
-
-        Vector4 pos;
-        Vector4 sca;
-        Vector4 rot;
-        transform.Decompose(Matrix4x4::Style::EulerAngles, pos, sca, rot);
-        rot.x = MMath::RadiansToDegrees(rot.x);
-        rot.y = MMath::RadiansToDegrees(rot.y);
-        rot.z = MMath::RadiansToDegrees(rot.z);
+        Vector4 pos = node->GetLocalTransform().GetOrigin();
+        Vector4 sca = node->GetLocalTransform().GetScale();
+        Vector4 rot = node->GetLocalTransform().GetRotation();
 
         // position
         {
             ImGui::PropertyLabel("Position");
             ImGui::SameLine();
-            ImGui::DragFloat3("##TransformPosition", (float*)&pos);
+            if (ImGui::DragFloat3("##TransformPosition", (float*)&pos))
+            {
+                node->SetPosition(pos);
+            }
         }
 
         // rotation
         {
             ImGui::PropertyLabel("Rotation");
             ImGui::SameLine();
-            ImGui::DragFloat3("##TransformRotation", (float*)&rot);
+            if (ImGui::DragFloat3("##TransformRotation", (float*)&rot))
+            {
+                node->SetRotation(rot);
+            }
         }
 
         // scale
         {
             ImGui::PropertyLabel("Scale");
             ImGui::SameLine();
-            ImGui::DragFloat3("##TransformScale", (float*)&sca);
+            if (ImGui::DragFloat3("##TransformScale", (float*)&sca))
+            {
+                node->SetScale(sca);
+            }
         }
-
-        rot.x = MMath::DegreesToRadians(rot.x);
-        rot.y = MMath::DegreesToRadians(rot.y);
-        rot.z = MMath::DegreesToRadians(rot.z);
-        transform.Recompose(pos, sca, rot);
     }
 }
 
@@ -147,7 +145,7 @@ void PropertyPanel::DrawPropertyLight(LightPtr light)
         {
             // direction
             {
-                Vector3 direction = light->node->GlobalTransform().GetForward();
+                Vector3 direction = light->node->GetGlobalTransform().GetForward();
                 ImGui::PropertyLabel("Direction");
                 ImGui::SameLine();
                 ImGui::DragFloat3("##LightDirection", (float*)&direction, 0.0f, 0.0f, 0.0f);
@@ -157,7 +155,7 @@ void PropertyPanel::DrawPropertyLight(LightPtr light)
         {
             // Position
             {
-                Vector3 position = light->node->GlobalTransform().GetOrigin();
+                Vector3 position = light->node->GetGlobalTransform().GetOrigin();
                 ImGui::PropertyLabel("Position");
                 ImGui::SameLine();
                 ImGui::DragFloat3("##LightPosition", (float*)&position, 0.0f, 0.0f, 0.0f);
@@ -174,7 +172,7 @@ void PropertyPanel::DrawPropertyLight(LightPtr light)
         {
             // Position
             {
-                Vector3 position = light->node->GlobalTransform().GetOrigin();
+                Vector3 position = light->node->GetGlobalTransform().GetOrigin();
                 ImGui::PropertyLabel("Position");
                 ImGui::SameLine();
                 ImGui::DragFloat3("##LightPosition", (float*)&position, 0.0f, 0.0f, 0.0f);

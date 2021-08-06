@@ -4,19 +4,19 @@ precision mediump float;
 
 #define MATH_PI 3.1415926535897932384626433832795
 
-uniform samplerCube uCubeMap;
+uniform samplerCube _CubeMap;
 
 // enum
 const int cLambertian = 0;
 const int cGGX = 1;
 const int cCharlie = 2;
 
-uniform float   u_roughness;
-uniform int     u_sampleCount;
-uniform int     u_width;
-uniform float   u_lodBias;
-uniform int     u_distribution;
-uniform int     u_currentFace;
+uniform float   _Roughness;
+uniform int     _SampleCount;
+uniform int     _Width;
+uniform float   _LodBias;
+uniform int     _Distribution;
+uniform int     _CurrentFace;
 
 in vec2  texCoord;
 out vec4 fragmentColor;
@@ -138,25 +138,25 @@ float D_Charlie(float sheenRoughness, float NdotH)
 
 vec3 GetSampleVector(int sampleIndex, vec3 N, float roughness)
 {
-	float X = float(sampleIndex) / float(u_sampleCount);
+	float X = float(sampleIndex) / float(_SampleCount);
 	float Y = Hammersley(uint(sampleIndex));
 
 	float phi = 2.0 * MATH_PI * X;
     float cosTheta = 0.f;
 	float sinTheta = 0.f;
 
-	if (u_distribution == cLambertian)
+	if (_Distribution == cLambertian)
 	{
 		cosTheta = 1.0 - Y;
 		sinTheta = sqrt(1.0 - cosTheta * cosTheta);
 	}
-	else if (u_distribution == cGGX)
+	else if (_Distribution == cGGX)
 	{
 		float alpha = roughness * roughness;
 		cosTheta = sqrt((1.0 - Y) / (1.0 + (alpha * alpha - 1.0) * Y));
 		sinTheta = sqrt(1.0 - cosTheta * cosTheta);
 	}
-	else if (u_distribution == cCharlie)
+	else if (_Distribution == cCharlie)
 	{
 		float alpha = roughness * roughness;
 		sinTheta = pow(Y, alpha / (2.0 * alpha + 1.0));
@@ -168,19 +168,19 @@ vec3 GetSampleVector(int sampleIndex, vec3 N, float roughness)
 
 float PDF(vec3 V, vec3 H, vec3 N, vec3 L, float roughness)
 {
-	if (u_distribution == cLambertian)
+	if (_Distribution == cLambertian)
 	{
 		float NdotL = dot(N, L);
 		return max(NdotL * (1.0 / MATH_PI), 0.0);
 	}
-	else if (u_distribution == cGGX)
+	else if (_Distribution == cGGX)
 	{
 		float VdotH = dot(V, H);
 		float NdotH = dot(N, H);
 		float D = D_GGX(NdotH, roughness);
 		return max(D * NdotH / (4.0 * VdotH), 0.0);
 	}
-	else if (u_distribution == cCharlie)
+	else if (_Distribution == cCharlie)
 	{
 		float VdotH = dot(V, H);
 		float NdotH = dot(N, H);
@@ -193,11 +193,11 @@ float PDF(vec3 V, vec3 H, vec3 N, vec3 L, float roughness)
 vec3 FilterColor(vec3 N)
 {
 	vec4 color = vec4(0.f);
-	float solidAngleTexel = 4.0 * MATH_PI / (6.0 * float(u_width) * float(u_width));
+	float solidAngleTexel = 4.0 * MATH_PI / (6.0 * float(_Width) * float(_Width));
 
-	for (int i = 0; i < u_sampleCount; ++i)
+	for (int i = 0; i < _SampleCount; ++i)
 	{
-		vec3 H = GetSampleVector(i, N, u_roughness);
+		vec3 H = GetSampleVector(i, N, _Roughness);
 		vec3 V = N;
 		vec3 L = normalize(reflect(-V, H));
 
@@ -207,21 +207,21 @@ vec3 FilterColor(vec3 N)
 		{
 			float lod = 0.0;
 
-			if (u_roughness > 0.0 ||u_distribution == cLambertian)
+			if (_Roughness > 0.0 ||_Distribution == cLambertian)
 			{
-				float pdf = PDF(V, H, N, L, u_roughness);
-				float solidAngleSample = 1.0 / (float(u_sampleCount) * pdf);
+				float pdf = PDF(V, H, N, L, _Roughness);
+				float solidAngleSample = 1.0 / (float(_SampleCount) * pdf);
 				lod  = 0.5 * log2(solidAngleSample / solidAngleTexel);
-				lod += u_lodBias;
+				lod += _LodBias;
 			}
 
-			if (u_distribution == cLambertian)
+			if (_Distribution == cLambertian)
 			{
-				color += vec4(textureLod(uCubeMap, H, lod).rgb, 1.0);
+				color += vec4(textureLod(_CubeMap, H, lod).rgb, 1.0);
 			}
 			else
 			{
-				color += vec4(textureLod(uCubeMap, L, lod).rgb * NdotL, NdotL);
+				color += vec4(textureLod(_CubeMap, L, lod).rgb * NdotL, NdotL);
 			}
 		}
 	}
@@ -250,7 +250,7 @@ vec3 LUT(float NdotV, float roughness)
 	float B = 0.0;
 	float C = 0.0;
 
-	for (int i = 0; i < u_sampleCount; ++i)
+	for (int i = 0; i < _SampleCount; ++i)
 	{
 		vec3 H = GetSampleVector(i, N, roughness);
 		vec3 L = normalize(reflect(-V, H));
@@ -261,7 +261,7 @@ vec3 LUT(float NdotV, float roughness)
 
 		if (NdotL > 0.0)
 		{
-			if (u_distribution == cGGX)
+			if (_Distribution == cGGX)
 			{
 				float V_pdf = V_SmithGGXCorrelated(NdotV, NdotL, roughness) * VdotH * NdotL / NdotH;
 				float Fc = pow(1.0 - VdotH, 5.0);
@@ -270,7 +270,7 @@ vec3 LUT(float NdotV, float roughness)
 				C += 0.0;
 			}
 
-			if (u_distribution == cCharlie)
+			if (_Distribution == cCharlie)
 			{
 				float sheenDistribution = D_Charlie(roughness, NdotH);
 				float sheenVisibility = V_Ashikhmin(NdotL, NdotV);
@@ -282,13 +282,13 @@ vec3 LUT(float NdotV, float roughness)
 		}
 	}
 
-	return vec3(4.0 * A, 4.0 * B, 4.0 * 2.0 * MATH_PI * C) / float(u_sampleCount);
+	return vec3(4.0 * A, 4.0 * B, 4.0 * 2.0 * MATH_PI * C) / float(_SampleCount);
 }
 
 void main()
 {
 	vec2 newUV = texCoord * 2.0 - 1.0;
-	vec3 scan  = UVToXYZ(u_currentFace, newUV);
+	vec3 scan  = UVToXYZ(_CurrentFace, newUV);
 
 	vec3 direction = normalize(scan);
 	direction.y = -direction.y;

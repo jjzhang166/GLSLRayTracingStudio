@@ -2,7 +2,36 @@
 #include "Misc/FileMisc.h"
 #include "Math/Math.h"
 
-GLuint CreateCubemapTexture(bool withMipmaps, int32 size)
+IBLSampler::IBLSampler()
+    : m_VertexBuffer(nullptr)
+    , m_IndexBuffer(nullptr)
+
+    , m_InputTexture(0)
+    , m_CubeTexture(0)
+    , m_LambertTexture(0)
+    , m_GGXTexture(0)
+    , m_SheenTexture(0)
+    , m_FrameBuffer(0)
+
+    , m_VAO(0)
+
+    , m_ProgramIBL(nullptr)
+    , m_ProgramCube(nullptr)
+
+    , m_SampleSize(512)
+    , m_SampleCount(128)
+    , m_LodBias(0.0f)
+    , m_MipMapCount(0)
+{
+    m_MipMapCount = MMath::FloorToInt(MMath::Log2((float)m_SampleSize)) + 1;
+}
+
+IBLSampler::~IBLSampler()
+{
+    
+}
+
+GLuint IBLSampler::CreateCubemapTexture(bool withMipmaps, int32 size)
 {
     GLuint texture;
     glGenTextures(1, &texture);
@@ -33,31 +62,7 @@ GLuint CreateCubemapTexture(bool withMipmaps, int32 size)
     return texture;
 }
 
-IBLSampler::IBLSampler()
-    : m_VertexBuffer(nullptr)
-    , m_IndexBuffer(nullptr)
-
-    , m_InputTexture(0)
-    , m_CubeTexture(0)
-    , m_LambertTexture(0)
-    , m_GGXTexture(0)
-    , m_SheenTexture(0)
-    , m_FrameBuffer(0)
-
-    , m_VAO(0)
-
-    , m_ProgramIBL(nullptr)
-    , m_ProgramCube(nullptr)
-
-    , m_SampleSize(512)
-    , m_SampleCount(128)
-    , m_LodBias(0.0f)
-    , m_MipMapCount(0)
-{
-    m_MipMapCount = MMath::FloorToInt(MMath::Log2((float)m_SampleSize)) + 1;
-}
-
-IBLSampler::~IBLSampler()
+void IBLSampler::Destroy()
 {
     if (m_InputTexture != 0)
     {
@@ -124,9 +129,9 @@ void IBLSampler::Init(HDRImagePtr hdrImage)
 {
     // ibl shader
     {
-        GLShaderPtr vertShader = std::make_shared<GLShader>(GetRootPath() + "assets/shaders/ibl/Fullscreen.vert", GL_VERTEX_SHADER);
-        GLShaderPtr fragShader = std::make_shared<GLShader>(GetRootPath() + "assets/shaders/ibl/IBLFiltering.frag", GL_FRAGMENT_SHADER);
-        std::vector<GLShaderPtr> shaders;
+        std::shared_ptr<GLShader> vertShader = std::make_shared<GLShader>(GetRootPath() + "assets/shaders/ibl/Fullscreen.vert", GL_VERTEX_SHADER);
+        std::shared_ptr<GLShader> fragShader = std::make_shared<GLShader>(GetRootPath() + "assets/shaders/ibl/IBLFiltering.frag", GL_FRAGMENT_SHADER);
+        std::vector<std::shared_ptr<GLShader>> shaders;
         shaders.push_back(vertShader);
         shaders.push_back(fragShader);
         m_ProgramIBL = new GLProgram(shaders);
@@ -134,9 +139,9 @@ void IBLSampler::Init(HDRImagePtr hdrImage)
 
     // cubemap shader
     {
-        GLShaderPtr vertShader = std::make_shared<GLShader>(GetRootPath() + "assets/shaders/ibl/Fullscreen.vert", GL_VERTEX_SHADER);
-        GLShaderPtr fragShader = std::make_shared<GLShader>(GetRootPath() + "assets/shaders/ibl/PanoramaToCubemap.frag", GL_FRAGMENT_SHADER);
-        std::vector<GLShaderPtr> shaders;
+        std::shared_ptr<GLShader> vertShader = std::make_shared<GLShader>(GetRootPath() + "assets/shaders/ibl/Fullscreen.vert", GL_VERTEX_SHADER);
+        std::shared_ptr<GLShader> fragShader = std::make_shared<GLShader>(GetRootPath() + "assets/shaders/ibl/PanoramaToCubemap.frag", GL_FRAGMENT_SHADER);
+        std::vector<std::shared_ptr<GLShader>> shaders;
         shaders.push_back(vertShader);
         shaders.push_back(fragShader);
         m_ProgramCube = new GLProgram(shaders);
@@ -211,7 +216,7 @@ void IBLSampler::Draw()
 {
     glBindVertexArray(m_VAO);
     glBindBuffer(m_IndexBuffer->Target(), m_IndexBuffer->Object());
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
     glBindBuffer(m_IndexBuffer->Target(), 0);
 }
@@ -224,25 +229,13 @@ void IBLSampler::PanoramaToCubeMap()
     {
         glBindFramebuffer(GL_FRAMEBUFFER, m_FrameBuffer);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_CubeTexture, 0);
-
-        glBindTexture(GL_TEXTURE_CUBE_MAP, m_CubeTexture);
-
+        
         glViewport(0, 0, m_SampleSize, m_SampleSize);
         glClearColor(0.0, 0.0, 0.0, 1.0);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glActiveTexture(GL_TEXTURE0 + 0);
-        glBindTexture(GL_TEXTURE_2D, m_InputTexture);
-            
-        {
-            GLint loc = glGetUniformLocation(m_ProgramCube->Object(), "u_panorama");
-            glUniform1i(loc, 0);
-        }
-
-        {
-            GLint loc = glGetUniformLocation(m_ProgramCube->Object(), "u_currentFace");
-            glUniform1i(loc, i);
-        }
+        m_ProgramCube->SetUniform1i("_CurrentFace", i);
+        m_ProgramCube->SetTexture("_Panorama", GL_TEXTURE_2D, m_InputTexture, 0);
 
         Draw();
     }
@@ -251,6 +244,9 @@ void IBLSampler::PanoramaToCubeMap()
 
     glBindTexture(GL_TEXTURE_CUBE_MAP, m_CubeTexture);
     glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+
+    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void IBLSampler::CubeMapToLambertian()
@@ -291,43 +287,13 @@ void IBLSampler::ApplyFilter(int32 distribution, float roughness, int32 targetMi
         glClearColor(1.0, 0.0, 0.0, 0.0);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glActiveTexture(GL_TEXTURE0 + 0);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, m_CubeTexture);
-
-        {
-            GLint loc = glGetUniformLocation(m_ProgramIBL->Object(), "uCubeMap");
-            glUniform1i(loc, 0);
-        }
-
-        {
-            GLint loc = glGetUniformLocation(m_ProgramIBL->Object(), "u_roughness");
-            glUniform1f(loc, roughness);
-        }
-
-        {
-            GLint loc = glGetUniformLocation(m_ProgramIBL->Object(), "u_sampleCount");
-            glUniform1i(loc, m_SampleCount);
-        }
-
-        {
-            GLint loc = glGetUniformLocation(m_ProgramIBL->Object(), "u_width");
-            glUniform1i(loc, m_SampleSize);
-        }
-
-        {
-            GLint loc = glGetUniformLocation(m_ProgramIBL->Object(), "u_lodBias");
-            glUniform1f(loc, m_LodBias);
-        }
-
-        {
-            GLint loc = glGetUniformLocation(m_ProgramIBL->Object(), "u_distribution");
-            glUniform1i(loc, distribution);
-        }
-
-        {
-            GLint loc = glGetUniformLocation(m_ProgramIBL->Object(), "u_currentFace");
-            glUniform1i(loc, i);
-        }
+        m_ProgramIBL->SetTexture("_CubeMap", GL_TEXTURE_CUBE_MAP, m_CubeTexture, 0);
+        m_ProgramIBL->SetUniform1f("_Roughness", roughness);
+        m_ProgramIBL->SetUniform1i("_SampleCount", m_SampleCount);
+        m_ProgramIBL->SetUniform1i("_Width", m_SampleSize);
+        m_ProgramIBL->SetUniform1f("_LodBias", m_LodBias);
+        m_ProgramIBL->SetUniform1i("_Distribution", distribution);
+        m_ProgramIBL->SetUniform1i("_CurrentFace", i);
 
         Draw();
     }

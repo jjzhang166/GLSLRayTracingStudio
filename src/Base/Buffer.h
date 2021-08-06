@@ -8,7 +8,7 @@ class GLBuffer
 {
 public:
 
-    GLBuffer(GLenum target, GLuint usage);
+    GLBuffer(GLenum target, GLenum usage);
 
     virtual ~GLBuffer();
 
@@ -28,7 +28,7 @@ public:
         return m_Buffer;
     }
 
-    FORCEINLINE GLuint Usage() const
+    FORCEINLINE GLenum Usage() const
     {
         return m_Usage;
     }
@@ -42,7 +42,7 @@ protected:
 
     GLuint      m_Buffer;
     GLenum      m_Target;
-    GLuint      m_Usage;
+    GLenum      m_Usage;
     int32       m_Length;
 };
 

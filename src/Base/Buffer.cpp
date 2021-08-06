@@ -1,6 +1,6 @@
 ﻿#include "Base/Buffer.h"
 
-GLBuffer::GLBuffer(GLenum target, GLuint usage)
+GLBuffer::GLBuffer(GLenum target, GLenum usage)
     : m_Target(target)
     , m_Usage(usage)
     , m_Buffer(0)

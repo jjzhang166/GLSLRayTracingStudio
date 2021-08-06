@@ -107,10 +107,10 @@ void MainMenuBar::Draw()
                     LoadGLTFJob* gltfJob = new LoadGLTFJob(fileName);
                     gltfJob->onCompleteEvent = [=](ThreadTask* task) -> void
                     {
-                        LOGI("GLTF load complete : %s\n", fileName.c_str());
                         m_Scene->AddScene(gltfJob->GetScene());
                         m_Scene->GetCamera()->SetAspect(m_UIView->Window()->FrameWidth() * 1.0f / m_UIView->Window()->FrameHeight());
                         m_Scene->Build();
+                        LOGI("GLTF load complete : %s\n", fileName.c_str());
                     };
                     
                     JobManager::AddJob(gltfJob);
@@ -126,10 +126,10 @@ void MainMenuBar::Draw()
                     LoadGLTFJob* gltfJob = new LoadGLTFJob(fileName);
                     gltfJob->onCompleteEvent = [=](ThreadTask* task) -> void
                     {
-                        LOGI("GLTF load complete : %s\n", fileName.c_str());
                         m_Scene->AddScene(gltfJob->GetScene());
                         m_Scene->GetCamera()->SetAspect(m_UIView->Window()->FrameWidth() * 1.0f / m_UIView->Window()->FrameHeight());
                         m_Scene->Build();
+                        LOGI("GLTF load complete : %s\n", fileName.c_str());
                     };
 
                     JobManager::AddJob(gltfJob);
@@ -145,11 +145,8 @@ void MainMenuBar::Draw()
                     LoadHDRJob* hdrJob = new LoadHDRJob(fileName);
                     hdrJob->onCompleteEvent = [=](ThreadTask* task) -> void
                     {
-                        LOGI("HDR load complete : %s\n", fileName.c_str());
                         m_Scene->AddHDR(hdrJob->GetHDRImage());
-
-                        IBLSampler sampler;
-                        sampler.Init(hdrJob->GetHDRImage());
+                        LOGI("HDR load complete : %s\n", fileName.c_str());
                     };
 
                     JobManager::AddJob(hdrJob);

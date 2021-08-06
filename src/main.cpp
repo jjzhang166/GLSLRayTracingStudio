@@ -71,7 +71,7 @@ int32 main(int32 argc, char** argv)
     }
 
     // destroy resources
-    scene->Free();
+    scene->Free(true);
     uiView->Destroy();
     view3D->Destroy();
     window->Destroy();

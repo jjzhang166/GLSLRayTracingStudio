@@ -7,6 +7,7 @@
 #include "Bvh/BvhTranslator.h"
 
 #include "Core/Texture.h"
+#include "Renderer/IBLSampler.h"
 
 #include "Math/Vector2.h"
 #include "Math/Vector3.h"
@@ -23,7 +24,7 @@ public:
 
     bool Init();
 
-    void Free();
+    void Free(bool freeHDR = false);
 
     int32 AddMesh(MeshPtr mesh);
 
@@ -50,6 +51,11 @@ public:
     FORCEINLINE CameraPtr GetCamera() const
     {
         return m_Camera;
+    }
+
+    FORCEINLINE const std::vector<IBLSampler*>& IBLs() const
+    {
+        return m_IBLs;
     }
 
     FORCEINLINE const Scene3DArray& GetScenes() const
@@ -146,6 +152,8 @@ protected:
     HDRImageArray                   m_Hdrs;
     CameraPtr					    m_Camera;
     std::vector<RendererNode>       m_Renderers;
+    Scene3DArray                    m_Scenes;
+    Bounds3D					    m_SceneBounds;
 
     std::vector<uint32>             m_Indices;
     std::vector<Vector3>            m_Positions;
@@ -154,7 +162,7 @@ protected:
     std::vector<Vector4>            m_Tangents;
     std::vector<Vector4>            m_Colors;
     std::vector<Matrix4x4>          m_Transforms;
-
+    
     int32					        m_IndicesTexWidth;
     int32						    m_TriDataTexWidth;
 
@@ -169,9 +177,7 @@ protected:
     std::vector<IndexBuffer*>       m_IndexBuffers;
     std::vector<GLuint>             m_VAOs;
     GLTexture*                      m_SceneTextures;
-
-    Bounds3D					    m_SceneBounds;
-    Scene3DArray                    m_Scenes;
+    std::vector<IBLSampler*>        m_IBLs;
 };
 
 typedef std::shared_ptr<GLScene> GLScenePtr;

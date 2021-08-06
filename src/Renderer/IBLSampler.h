@@ -21,6 +21,8 @@ public:
 
     void Init(HDRImagePtr hdrImage);
 
+    void Destroy();
+
     FORCEINLINE GLuint Background() const
     {
         return m_CubeTexture;
@@ -66,9 +68,11 @@ public:
         return m_SampleSize;
     }
 
+    void PanoramaToCubeMap();
+
 private:
 
-    void PanoramaToCubeMap();
+    GLuint CreateCubemapTexture(bool withMipmaps, int32 size);
 
     void CubeMapToLambertian();
 

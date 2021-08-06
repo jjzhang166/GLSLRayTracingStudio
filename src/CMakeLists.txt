@@ -126,11 +126,13 @@ set(PARSER_SRCS
 )
 
 set(RENDERER_HDRS
+    Renderer/SkyBox.h
     Renderer/IBLSampler.h
     Renderer/PBRRenderer.h
     Renderer/RayTracingRenderer.h
 )
 set(RENDERER_SRCS
+    Renderer/SkyBox.cpp
     Renderer/IBLSampler.cpp
     Renderer/PBRRenderer.cpp
     Renderer/RayTracingRenderer.cpp

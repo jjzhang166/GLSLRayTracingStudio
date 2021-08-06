@@ -36,6 +36,7 @@ void LoadHDRJob::LoadHDRImage()
 {
     m_HDRImage = std::make_shared<HDRImage>();
     float* pixels = stbi_loadf(m_Path.c_str(), &(m_HDRImage->width), &(m_HDRImage->height), &(m_HDRImage->component), STBI_rgb);
+    m_HDRImage->component = 3;
 
     m_HDRImage->hdrRGB.resize(m_HDRImage->width * m_HDRImage->height * m_HDRImage->component);
     memcpy(m_HDRImage->hdrRGB.data(), pixels, m_HDRImage->hdrRGB.size() * sizeof(float));

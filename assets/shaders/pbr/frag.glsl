@@ -14,5 +14,6 @@ out vec4 outColor;
 
 void main()
 {
-	outColor = vec4(varyNormals.x, varyNormals.y, varyNormals.z, 1.0);
+	vec3 normal = (varyNormals + vec3(1.0, 1.0f, 1.0)) * 0.5;
+	outColor = vec4(normal.x, normal.y, normal.z, 1.0);
 }

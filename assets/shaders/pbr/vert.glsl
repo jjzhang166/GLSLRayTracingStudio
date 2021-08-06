@@ -13,14 +13,14 @@ layout (location = 2) in vec2 inTexCoord;
 layout (location = 3) in vec4 inTangent;
 layout (location = 4) in vec4 inColor;
 
-uniform mat4 mvp;
+uniform mat4 _MVP;
 
 out vec2 varyTexCoords;
 out vec3 varyNormals;
 
 void main()
 {
-    gl_Position   = mvp * vec4(inPosition, 1.0);
+    gl_Position   = _MVP * vec4(inPosition, 1.0);
 	varyTexCoords = inTexCoord.xy;
-    varyNormals   = inNormal;
+    varyNormals   = normalize(inNormal);
 }

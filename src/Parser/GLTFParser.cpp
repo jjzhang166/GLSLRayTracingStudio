@@ -126,7 +126,7 @@ static bool GetGLTFAttribute(const tinygltf::Model& model, const tinygltf::Primi
     }
     else
     {
-        int32 numComps      = accessor.type == TINYGLTF_TYPE_VEC2 ? 2 : (accessor.type == TINYGLTF_TYPE_VEC3) ? 3 : 4;
+        int32 numComps    = accessor.type == TINYGLTF_TYPE_VEC2 ? 2 : (accessor.type == TINYGLTF_TYPE_VEC3) ? 3 : 4;
         size_t strideComp = accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE ? 1 : 2;
         size_t byteStride = bufView.byteStride > 0 ? bufView.byteStride : size_t(numComps) * strideComp;
         auto   bufferByte = reinterpret_cast<const uint8*>(bufData);
@@ -381,19 +381,32 @@ static void ImportMesh(Scene3DPtr scene, tinygltf::Model& model, Object3DPtr obj
             GetGLTFAttribute<Vector3>(model, gltfPrim, mesh->positions, "POSITION");
 
             const auto& accessor = model.accessors[gltfPrim.attributes.find("POSITION")->second];
-            if (accessor.minValues.size() == 3)
+            if (accessor.minValues.size() == 3 && accessor.maxValues.size() == 3)
             {
                 mesh->aabb.min = Vector3((float)accessor.minValues[0], (float)accessor.minValues[1], (float)accessor.minValues[2]);
-            }
-            if (accessor.maxValues.size() == 3)
-            {
                 mesh->aabb.max = Vector3((float)accessor.maxValues[0], (float)accessor.maxValues[1], (float)accessor.maxValues[2]);
+            }
+            else
+            {
+                for (size_t i = 0; i < mesh->positions.size(); ++i)
+                {
+                    if (i == 0)
+                    {
+                        mesh->aabb.min = mesh->positions[i];
+                        mesh->aabb.max = mesh->positions[i];
+                    }
+                    else
+                    {
+                        mesh->aabb.Expand(mesh->positions[i]);
+                    }
+                }
             }
         }
 
         // normal
         {
             std::vector<Vector3> normals;
+
             if (!GetGLTFAttribute<Vector3>(model, gltfPrim, normals, "NORMAL"))
             {
                 normals.resize(mesh->positions.size());
@@ -441,12 +454,12 @@ static void ImportMesh(Scene3DPtr scene, tinygltf::Model& model, Object3DPtr obj
 
         // tangent
         {
-            std::vector<Vector4> tangents;
-            if (!GetGLTFAttribute<Vector4>(model, gltfPrim, tangents, "TANGENT"))
+            if (!GetGLTFAttribute<Vector4>(model, gltfPrim, mesh->tangents, "TANGENT"))
             {
                 std::vector<Vector3> tempTangents;
-                std::vector<Vector3> tempBitangents;
                 tempTangents.resize(mesh->positions.size());
+
+                std::vector<Vector3> tempBitangents;
                 tempBitangents.resize(mesh->positions.size());
 
                 for (size_t i = 0; i < mesh->indices.size(); i += 3)
@@ -488,7 +501,7 @@ static void ImportMesh(Scene3DPtr scene, tinygltf::Model& model, Object3DPtr obj
                     tempBitangents[idx2] += b;
                 }
 
-                tangents.resize(mesh->positions.size());
+                mesh->tangents.resize(mesh->positions.size());
                 for (size_t i = 0; i < mesh->positions.size(); ++i)
                 {
                     const auto& n = mesh->normals[i];
@@ -498,33 +511,20 @@ static void ImportMesh(Scene3DPtr scene, tinygltf::Model& model, Object3DPtr obj
                     Vector3 tangent  = (t - (Vector3::DotProduct(n, t) * n)).GetSafeNormal();
                     float handedness = (Vector3::DotProduct(Vector3::CrossProduct(n, t), b) < 0.0f) ? -1.0f : 1.0f;
 
-                    tangents[i] = Vector4(tangent, handedness);
+                    mesh->tangents[i] = Vector4(tangent, handedness);
                 }
-            }
-
-            mesh->tangents.resize(tangents.size());
-            for (size_t i = 0; i < tangents.size(); ++i)
-            {
-                mesh->tangents[i] = tangents[i];
             }
         }
 
         // color
         {
-            std::vector<Vector4> colors;
-            if (!GetGLTFAttribute<Vector4>(model, gltfPrim, colors, "COLOR_0"))
+            if (!GetGLTFAttribute<Vector4>(model, gltfPrim, mesh->colors, "COLOR_0"))
             {
-                colors.resize(mesh->positions.size());
+                mesh->colors.resize(mesh->positions.size());
                 for (size_t i = 0; i < mesh->positions.size(); ++i)
                 {
-                    colors[i] = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+                    mesh->colors[i] = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
                 }
-            }
-
-            mesh->colors.resize(colors.size());
-            for (size_t i = 0; i < colors.size(); ++i)
-            {
-                mesh->colors[i] = colors[i];
             }
         }
     }
@@ -612,12 +612,6 @@ static void ImportNode(Scene3DPtr scene, tinygltf::Model& model, int32 nodeID, O
     {
         ImportMesh(scene, model, object3D, gltfNode.mesh);
     }
-    // camera
-    // else if (gltfNode.camera > -1)
-    // {
-    //     ImportCamera(scene, model, object3D, gltfNode);
-    // }
-    // light
     else if (gltfNode.extensions.find(KHR_LIGHTS_PUNCTUAL_EXTENSION_NAME) != gltfNode.extensions.end())
     {
         ImportLight(scene, model, object3D, gltfNode);
@@ -736,7 +730,7 @@ static void CalcSceneDimensions(Scene3DPtr scene)
         for (size_t m = 0; m < node->meshes.size(); ++m)
         {
             auto mesh  = node->meshes[m];
-            auto world = node->GlobalTransform();
+            auto world = node->GetGlobalTransform();
             
             Vector3 corners[8];
             corners[0].Set(mesh->aabb.min.x, mesh->aabb.min.y, mesh->aabb.min.z);

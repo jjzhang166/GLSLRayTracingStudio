@@ -29,7 +29,7 @@ bool GLScene::Init()
     return true;
 }
 
-void GLScene::Free()
+void GLScene::Free(bool freeHDR)
 {
     m_SceneBvh        = nullptr;
     m_BvhTranslator   = nullptr;
@@ -43,7 +43,6 @@ void GLScene::Free()
     m_Lights.clear();
     m_Images.clear();
     m_Textures.clear();
-    m_Hdrs.clear();
     m_Renderers.clear();
     m_Indices.clear();
     m_Positions.clear();
@@ -53,6 +52,18 @@ void GLScene::Free()
     m_Colors.clear();
     m_Transforms.clear();
     m_Scenes.clear();
+
+    if (freeHDR)
+    {
+        m_Hdrs.clear();
+
+        for (int32 i = 0; i < m_IBLs.size(); ++i)
+        {
+            m_IBLs[i]->Destroy();
+            delete m_IBLs[i];
+        }
+        m_IBLs.clear();
+    }
 
     if (m_SceneTextures)
     {
@@ -246,6 +257,11 @@ int32 GLScene::AddHDR(HDRImagePtr hdr)
 {
     int32 id = (int32)m_Hdrs.size();
     m_Hdrs.push_back(hdr);
+
+    IBLSampler* sampler = new IBLSampler();
+    sampler->Init(hdr);
+    m_IBLs.push_back(sampler);
+
     return id;
 }
 
@@ -313,7 +329,7 @@ void GLScene::BuildRendererDatas()
     m_Transforms.resize(m_Renderers.size());
     for (int32 i = 0; i < m_Renderers.size(); i++) 
     {
-        m_Transforms[i] = m_Nodes[m_Renderers[i].nodeID]->GlobalTransform();
+        m_Transforms[i] = m_Nodes[m_Renderers[i].nodeID]->GetGlobalTransform();
     }
 }
 
@@ -325,7 +341,7 @@ void GLScene::RebuildRendererDatas()
 
     for (int32 i = 0; i < m_Renderers.size(); i++) 
     {
-        m_Transforms[i] = m_Nodes[m_Renderers[i].nodeID]->GlobalTransform();
+        m_Transforms[i] = m_Nodes[m_Renderers[i].nodeID]->GetGlobalTransform();
     }
 }
 
@@ -337,7 +353,7 @@ void GLScene::CreateTLAS()
     for (size_t i = 0; i < m_Renderers.size(); i++)
     {
         Bounds3D aabb    = m_Meshes[m_Renderers[i].meshID]->bvh->Bounds();
-        Matrix4x4 matrix = m_Nodes[m_Renderers[i].nodeID]->GlobalTransform();
+        Matrix4x4 matrix = m_Nodes[m_Renderers[i].nodeID]->GetGlobalTransform();
         Vector3 minBound = aabb.min;
         Vector3 maxBound = aabb.max;
 
@@ -395,16 +411,16 @@ void GLScene::GenVertexBuffers()
             m_VertexBuffers0[i]->Upload((uint8*)(mesh->positions.data()), (int32)(sizeof(Vector3) * mesh->positions.size()));
 
             m_VertexBuffers1[i] = new VertexBuffer();
-            m_VertexBuffers1[i]->Upload((uint8*)(mesh->normals.data()), (int32)(sizeof(uint32) * mesh->normals.size()));
+            m_VertexBuffers1[i]->Upload((uint8*)(mesh->normals.data()), (int32)(sizeof(Vector3) * mesh->normals.size()));
 
             m_VertexBuffers2[i] = new VertexBuffer();
             m_VertexBuffers2[i]->Upload((uint8*)(mesh->uvs.data()), (int32)(sizeof(Vector2) * mesh->uvs.size()));
 
             m_VertexBuffers3[i] = new VertexBuffer();
-            m_VertexBuffers3[i]->Upload((uint8*)(mesh->tangents.data()), (int32)(sizeof(uint32) * mesh->tangents.size()));
+            m_VertexBuffers3[i]->Upload((uint8*)(mesh->tangents.data()), (int32)(sizeof(Vector4) * mesh->tangents.size()));
 
             m_VertexBuffers4[i] = new VertexBuffer();
-            m_VertexBuffers4[i]->Upload((uint8*)(mesh->colors.data()), (int32)(sizeof(uint32) * mesh->colors.size()));
+            m_VertexBuffers4[i]->Upload((uint8*)(mesh->colors.data()), (int32)(sizeof(Vector4) * mesh->colors.size()));
         }
 
         // vao

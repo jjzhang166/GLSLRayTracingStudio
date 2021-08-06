@@ -131,15 +131,14 @@ void GLWindow::Render()
 {
     glfwGetFramebufferSize(m_Window, &m_FrameWidth, &m_FrameHeight);
 
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_STENCIL_TEST);
     glEnable(GL_SCISSOR_TEST);
 
     glViewport(0, 0, m_FrameWidth, m_FrameHeight);
     glScissor(0, 0, m_FrameWidth, m_FrameHeight);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
+    // 3d first
     if (m_Scene3DView)
     {
         m_Scene3DView->OnRender();

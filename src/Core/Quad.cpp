@@ -1,6 +1,8 @@
 ﻿#include "Core/Quad.h"
 
 Quad::Quad()
+    : m_Vao(0)
+    , m_Vbo(0)
 {
     glGenVertexArrays(1, &m_Vao);
     glGenBuffers(1, &m_Vbo);
@@ -34,7 +36,7 @@ Quad::~Quad()
     glDeleteVertexArrays(1, &m_Vao);
 }
 
-void Quad::Draw(GLProgramPtr program)
+void Quad::Draw(GLProgram* program)
 {
     program->Active();
     glBindVertexArray(m_Vao);

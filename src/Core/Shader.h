@@ -19,6 +19,3 @@ private:
 
     GLuint m_Object;
 };
-
-typedef std::shared_ptr<GLShader> GLShaderPtr;
-typedef std::vector<GLShaderPtr>  GLShaderArray;

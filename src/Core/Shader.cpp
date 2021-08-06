@@ -62,7 +62,6 @@ GLShader::GLShader(const std::string& filePath, GLuint shaderType)
     std::string source = LoadShader(filePath);
 
     m_Object = glCreateShader(shaderType);
-    LOGI("Compiling Shader %s -> %d\n", filePath.c_str(), int32(m_Object));
 
     const GLchar *src = (const GLchar *)source.c_str();
     glShaderSource(m_Object, 1, &src, 0);

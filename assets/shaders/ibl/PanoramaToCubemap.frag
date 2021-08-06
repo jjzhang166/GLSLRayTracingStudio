@@ -8,9 +8,9 @@ precision highp float;
 in vec2 texCoord;
 out vec4 fragmentColor;
 
-uniform int u_currentFace;
+uniform int _CurrentFace;
 
-uniform sampler2D u_panorama;
+uniform sampler2D _Panorama;
 
 vec3 UVToXYZ(int face, vec2 uv)
 {
@@ -51,11 +51,11 @@ vec3 PanoramaToCubeMap(int face, vec2 texCoord)
 	vec3 scan = UVToXYZ(face, texCoordNew);
 	vec3 direction = normalize(scan);
 	vec2 src = DirToUV(direction);
-	return texture(u_panorama, src).rgb;
+	return texture(_Panorama, src).rgb;
 }
 
 void main(void)
 {
     fragmentColor = vec4(0.0, 0.0, 0.0, 1.0);
-	fragmentColor.rgb = PanoramaToCubeMap(u_currentFace, vec2(1.0 - texCoord.x, texCoord.y));
+	fragmentColor.rgb = PanoramaToCubeMap(_CurrentFace, vec2(1.0 - texCoord.x, texCoord.y));
 }

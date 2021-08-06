@@ -172,6 +172,10 @@ void Camera::Update(float delta)
     {
         isMoving = true;
     }
+    else
+    {
+        isMoving = false;
+    }
 
     m_SpinX *= (1 - smooth);
     m_SpinY *= (1 - smooth);
