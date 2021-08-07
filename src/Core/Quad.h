@@ -10,7 +10,9 @@ public:
 
     Quad();
 
-    void Draw(GLProgramPtr program);
+    virtual ~Quad();
+
+    void Draw(GLProgram* program);
 
 private:
 

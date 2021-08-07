@@ -1,8 +1,10 @@
-﻿#include "Parser/GLTFParser.h"
+﻿#include "Base/Base.h"
+
+#include "Parser/GLTFParser.h"
 #include "Parser/tiny_gltf.h"
 
 #include "Misc/FileMisc.h"
-#include "Base/Base.h"
+#include "Misc/JobManager.h"
 
 #include "Math/Vector2.h"
 #include "Math/Vector3.h"
@@ -10,6 +12,7 @@
 #include "Math/Quat.h"
 
 #include <string>
+#include <thread>
 #include <glad/glad.h>
 
 #define KHR_LIGHTS_PUNCTUAL_EXTENSION_NAME "KHR_lights_punctual"
@@ -123,7 +126,7 @@ static bool GetGLTFAttribute(const tinygltf::Model& model, const tinygltf::Primi
     }
     else
     {
-        int32 numComps      = accessor.type == TINYGLTF_TYPE_VEC2 ? 2 : (accessor.type == TINYGLTF_TYPE_VEC3) ? 3 : 4;
+        int32 numComps    = accessor.type == TINYGLTF_TYPE_VEC2 ? 2 : (accessor.type == TINYGLTF_TYPE_VEC3) ? 3 : 4;
         size_t strideComp = accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE ? 1 : 2;
         size_t byteStride = bufView.byteStride > 0 ? bufView.byteStride : size_t(numComps) * strideComp;
         auto   bufferByte = reinterpret_cast<const uint8*>(bufData);
@@ -378,19 +381,32 @@ static void ImportMesh(Scene3DPtr scene, tinygltf::Model& model, Object3DPtr obj
             GetGLTFAttribute<Vector3>(model, gltfPrim, mesh->positions, "POSITION");
 
             const auto& accessor = model.accessors[gltfPrim.attributes.find("POSITION")->second];
-            if (accessor.minValues.size() == 3)
+            if (accessor.minValues.size() == 3 && accessor.maxValues.size() == 3)
             {
                 mesh->aabb.min = Vector3((float)accessor.minValues[0], (float)accessor.minValues[1], (float)accessor.minValues[2]);
-            }
-            if (accessor.maxValues.size() == 3)
-            {
                 mesh->aabb.max = Vector3((float)accessor.maxValues[0], (float)accessor.maxValues[1], (float)accessor.maxValues[2]);
+            }
+            else
+            {
+                for (size_t i = 0; i < mesh->positions.size(); ++i)
+                {
+                    if (i == 0)
+                    {
+                        mesh->aabb.min = mesh->positions[i];
+                        mesh->aabb.max = mesh->positions[i];
+                    }
+                    else
+                    {
+                        mesh->aabb.Expand(mesh->positions[i]);
+                    }
+                }
             }
         }
 
         // normal
         {
             std::vector<Vector3> normals;
+
             if (!GetGLTFAttribute<Vector3>(model, gltfPrim, normals, "NORMAL"))
             {
                 normals.resize(mesh->positions.size());
@@ -419,16 +435,7 @@ static void ImportMesh(Scene3DPtr scene, tinygltf::Model& model, Object3DPtr obj
             mesh->normals.resize(normals.size());
             for (size_t i = 0; i < normals.size(); ++i)
             {
-                // pow(2,10) = 1024
-                Vector3 normal = (normals[i] + 1.0f) * 0.5f;
-                uint8 r = uint8(normal.x * 1024);
-                uint8 g = uint8(normal.y * 1024);
-                uint8 b = uint8(normal.z * 1024);
-                uint32 val = (r << 20) | (g << 10) | (b);
-                mesh->normals[i] = val;
-                // uint16 r0 = (val >> 20) & 1023;
-                // uint16 g1 = (val >> 10) & 1023;
-                // uint16 b1 = (val >>  0) & 1023;
+                mesh->normals[i] = normals[i];
             }
         }
 
@@ -447,12 +454,12 @@ static void ImportMesh(Scene3DPtr scene, tinygltf::Model& model, Object3DPtr obj
 
         // tangent
         {
-            std::vector<Vector4> tangents;
-            if (!GetGLTFAttribute<Vector4>(model, gltfPrim, tangents, "TANGENT"))
+            if (!GetGLTFAttribute<Vector4>(model, gltfPrim, mesh->tangents, "TANGENT"))
             {
                 std::vector<Vector3> tempTangents;
-                std::vector<Vector3> tempBitangents;
                 tempTangents.resize(mesh->positions.size());
+
+                std::vector<Vector3> tempBitangents;
                 tempBitangents.resize(mesh->positions.size());
 
                 for (size_t i = 0; i < mesh->indices.size(); i += 3)
@@ -494,79 +501,32 @@ static void ImportMesh(Scene3DPtr scene, tinygltf::Model& model, Object3DPtr obj
                     tempBitangents[idx2] += b;
                 }
 
-                tangents.resize(mesh->positions.size());
+                mesh->tangents.resize(mesh->positions.size());
                 for (size_t i = 0; i < mesh->positions.size(); ++i)
                 {
-                    const auto& normal = mesh->normals[i];
-                    uint16 red   = (normal >> 20) & 1023;
-                    uint16 green = (normal >> 10) & 1023;
-                    uint16 blue  = (normal >>  0) & 1023;
-                    Vector3 n    = Vector3(red / 1024.0f, green / 1024.0f, blue / 1024.0f) * 2.0f - 1.0f;
-
+                    const auto& n = mesh->normals[i];
                     const auto& t = tempTangents[i];
                     const auto& b = tempBitangents[i];
 
                     Vector3 tangent  = (t - (Vector3::DotProduct(n, t) * n)).GetSafeNormal();
                     float handedness = (Vector3::DotProduct(Vector3::CrossProduct(n, t), b) < 0.0f) ? -1.0f : 1.0f;
 
-                    tangents[i] = Vector4(tangent, handedness);
+                    mesh->tangents[i] = Vector4(tangent, handedness);
                 }
-            }
-
-            mesh->tangents.resize(tangents.size());
-            for (size_t i = 0; i < tangents.size(); ++i)
-            {
-                Vector3 tangent = (tangents[i] + Vector4(1.0f, 1.0f, 1.0f, 1.0f)) * 0.5f;
-                uint8 r = uint8(tangent.x * 1024);
-                uint8 g = uint8(tangent.y * 1024);
-                uint8 b = uint8(tangent.z * 1024);
-                uint8 a = tangents[i].w > 0.0f ? 1 : 0;
-                uint32 val = (a << 30) | (r << 20) | (g << 10) | (b);
-                mesh->tangents[i] = val;
             }
         }
 
         // color
         {
-            std::vector<Vector4> colors;
-            if (!GetGLTFAttribute<Vector4>(model, gltfPrim, colors, "COLOR_0"))
+            if (!GetGLTFAttribute<Vector4>(model, gltfPrim, mesh->colors, "COLOR_0"))
             {
-                colors.resize(mesh->positions.size());
+                mesh->colors.resize(mesh->positions.size());
                 for (size_t i = 0; i < mesh->positions.size(); ++i)
                 {
-                    colors[i] = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+                    mesh->colors[i] = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
                 }
             }
         }
-
-        // bvh
-        {
-            mesh->BuildBVH();
-        }
-    }
-}
-
-static void ImportCamera(Scene3DPtr scene, tinygltf::Model& model, Object3DPtr object3D, tinygltf::Node& gltfNode)
-{
-    const auto& gltfCamera = model.cameras[gltfNode.camera];
-    
-    // perspective
-    if (gltfCamera.type == "perspective")
-    {
-        std::shared_ptr<Camera> camera = std::make_shared<Camera>();
-        
-        // add to scene
-        {
-            object3D->camera = camera;
-            scene->cameras.push_back(camera);
-        }
-
-        camera->node = object3D;
-        camera->Perspective((float)gltfCamera.perspective.yfov, 1.0f, 1.0f, (float)gltfCamera.perspective.znear, (float)gltfCamera.perspective.zfar);
-    }
-    else
-    {
-        // not support
     }
 }
 
@@ -584,8 +544,6 @@ static void ImportLight(Scene3DPtr scene, tinygltf::Model& model, Object3DPtr ob
     }
 
     light->node      = object3D;
-    light->position  = object3D->GlobalTransform().GetOrigin();
-    light->direction = object3D->GlobalTransform().GetForward();
     light->color     = Vector3((float)gltfLight.color[0], (float)gltfLight.color[1], (float)gltfLight.color[2]);
     light->innerCone = (float)gltfLight.spot.innerConeAngle;
     light->outerCone = (float)gltfLight.spot.outerConeAngle;
@@ -616,7 +574,14 @@ static void ImportNode(Scene3DPtr scene, tinygltf::Model& model, int32 nodeID, O
     }
 
     // name
-    object3D->name = gltfNode.name;
+    if (gltfNode.name.empty())
+    {
+        object3D->name = std::string("node_") + std::to_string(nodeID);
+    }
+    else
+    {
+        object3D->name = gltfNode.name;
+    }
 
     if (parent)
     {
@@ -647,12 +612,6 @@ static void ImportNode(Scene3DPtr scene, tinygltf::Model& model, int32 nodeID, O
     {
         ImportMesh(scene, model, object3D, gltfNode.mesh);
     }
-    // camera
-    else if (gltfNode.camera > -1)
-    {
-        ImportCamera(scene, model, object3D, gltfNode);
-    }
-    // light
     else if (gltfNode.extensions.find(KHR_LIGHTS_PUNCTUAL_EXTENSION_NAME) != gltfNode.extensions.end())
     {
         ImportLight(scene, model, object3D, gltfNode);
@@ -731,20 +690,30 @@ static void ImportTextures(Scene3DPtr scene, tinygltf::Model& model)
 
     for (int32 i = 0; i < (int32)model.textures.size(); ++i)
     {
-        const auto& gltfTexture = model.textures[i];
-        const auto& gltfSampler = model.samplers[gltfTexture.sampler];
         std::shared_ptr<Texture> texture = std::make_shared<Texture>();
-
         // add to scene
         {
             scene->textures.push_back(texture);
         }
 
-        texture->source    = scene->images[gltfTexture.source];
-        texture->minFilter = filters[gltfSampler.minFilter];
-        texture->magFilter = filters[gltfSampler.magFilter];
-        texture->wrapS     = addressMode[gltfSampler.wrapS];
-        texture->wrapT     = addressMode[gltfSampler.wrapT];
+        const auto& gltfTexture = model.textures[i];
+        texture->source = scene->images[gltfTexture.source];
+
+        if (gltfTexture.sampler > -1)
+        {
+            auto& gltfSampler  = model.samplers[gltfTexture.sampler];
+            texture->minFilter = filters[gltfSampler.minFilter];
+            texture->magFilter = filters[gltfSampler.magFilter];
+            texture->wrapS     = addressMode[gltfSampler.wrapS];
+            texture->wrapT     = addressMode[gltfSampler.wrapT];
+        }
+        else
+        {
+            texture->minFilter = filters[9729];
+            texture->magFilter = filters[9729];
+            texture->wrapS     = addressMode[10497];
+            texture->wrapT     = addressMode[10497];
+        }
     }
 }
 
@@ -761,7 +730,7 @@ static void CalcSceneDimensions(Scene3DPtr scene)
         for (size_t m = 0; m < node->meshes.size(); ++m)
         {
             auto mesh  = node->meshes[m];
-            auto world = node->GlobalTransform();
+            auto world = node->GetGlobalTransform();
             
             Vector3 corners[8];
             corners[0].Set(mesh->aabb.min.x, mesh->aabb.min.y, mesh->aabb.min.z);
@@ -783,34 +752,66 @@ static void CalcSceneDimensions(Scene3DPtr scene)
     }
 }
 
-static void FitSceneCamera(Scene3DPtr scene)
+static void BuildBottomLevelAS(Scene3DPtr scene)
 {
-    if (scene->cameras.size() != 0)
+    if (scene->meshes.size() == 0)
     {
         return;
     }
 
-    CameraPtr camera = std::make_shared<Camera>();
-    camera->Perspective(MMath::DegreesToRadians(60.0f), 1.0f, 1.0f, 0.1f, 3000.0f);
+    struct BuildBVHJob : ThreadTask
+    {
+        MeshPtr mesh;
 
-    // add to scene
-    Object3DPtr node = std::make_shared<Object3D>();
-    node->name   = "DefaultCamera";
-    node->camera = camera;
-    node->parent = scene->rootNode;
-    camera->node = node;
+        BuildBVHJob(MeshPtr inMesh)
+            : mesh(inMesh)
+        {
 
-    scene->rootNode->children.push_back(node);
-    scene->nodes.push_back(node);
-    scene->cameras.push_back(camera);
+        }
 
-    // update position
-    Vector3 center = scene->bounds.Center();
-    Vector3 extent = scene->bounds.Extents();
-    Vector3 eye    = Vector3(center.x, center.y, center.z - extent.Size() * 1.0f);
-    Vector3 at     = center;
-    node->transform.SetPosition(eye);
-    node->transform.LookAt(center);
+        virtual void DoThreadedWork() override
+		{
+            mesh->BuildBVH();
+		}
+
+		virtual void Abandon() override
+		{
+
+		}
+    };
+
+    std::vector<BuildBVHJob*> jobs;
+    for (size_t i = 0; i < scene->meshes.size(); ++i)
+    {
+        BuildBVHJob* job = new BuildBVHJob(scene->meshes[i]);
+        jobs.push_back(job);
+        JobManager::TaskPool()->AddTask(job);
+    }
+
+    while (true)
+    {
+        bool complete = true;
+        for (size_t i = 0; i < jobs.size(); ++i)
+        {
+            if (!jobs[i]->IsDone())
+            {
+                complete = false;
+                break;
+            }
+        }
+
+        if (complete)
+        {
+            break;
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+
+    for (size_t i = 0; i < jobs.size(); ++i)
+    {
+        delete jobs[i];
+    }
 }
 
 LoadGLTFJob::LoadGLTFJob(const std::string& path)
@@ -856,5 +857,5 @@ void LoadGLTFJob::DoThreadedWork()
     ImportImages(m_Scene3D, tinyModel);
     ImportTextures(m_Scene3D, tinyModel);
     CalcSceneDimensions(m_Scene3D);
-    FitSceneCamera(m_Scene3D);
+    BuildBottomLevelAS(m_Scene3D);
 }

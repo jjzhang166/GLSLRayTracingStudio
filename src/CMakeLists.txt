@@ -3,11 +3,13 @@
     Base/GLWindow.h
     Base/Base.h
     Base/Renderer.h
+    Base/Buffer.h
 )
 set(BASE_SRCS
     Base/Base.cpp
     Base/SceneView.cpp
     Base/GLWindow.cpp
+    Base/Buffer.cpp
 )
 
 set(COMMON_HDRS
@@ -54,10 +56,16 @@ set(VIEW_SRCS
 set(VIEW_COMPONENTS_HDRS
     View/Components/LogPanel.h
     View/Components/MainMenuBar.h
+    View/Components/ProjectPanel.h
+    View/Components/PropertyPanel.h
+    View/Components/ImguiHelper.h
 )
 set(VIEW_COMPONENTS_SRCS
     View/Components/LogPanel.cpp
     View/Components/MainMenuBar.cpp
+    View/Components/ProjectPanel.cpp
+    View/Components/PropertyPanel.cpp
+    View/Components/ImguiHelper.cpp
 )
 
 set(MISC_HDRS
@@ -118,10 +126,14 @@ set(PARSER_SRCS
 )
 
 set(RENDERER_HDRS
+    Renderer/SkyBox.h
+    Renderer/IBLSampler.h
     Renderer/PBRRenderer.h
     Renderer/RayTracingRenderer.h
 )
 set(RENDERER_SRCS
+    Renderer/SkyBox.cpp
+    Renderer/IBLSampler.cpp
     Renderer/PBRRenderer.cpp
     Renderer/RayTracingRenderer.cpp
 )

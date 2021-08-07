@@ -1,19 +1,13 @@
 ﻿#include "View/Icons.h"
 #include "Parser/stb_image.h"
 
+#include "imgui.h"
+
 #include <string>
 
-Icons::Icons()
-{
+GLTexture* Icons::m_Icons[IconName::ICON_COUNT];
 
-}
-
-Icons::~Icons()
-{
-
-}
-
-void Icons::Load()
+void Icons::Init()
 {
     std::string rootPath = "../assets/icons/";
 
@@ -39,4 +33,50 @@ void Icons::Destroy()
         delete m_Icons[i];
         m_Icons[i] = nullptr;
     }
+}
+
+void Icons::DrawImage(IconName name, Vector2 inSize)
+{
+    GLTexture* icon = m_Icons[name];
+    ImTextureID id  = (ImTextureID)(intptr_t)icon->GetTexture();
+
+    ImVec2 size = ImVec2((float)icon->GetWidth(), (float)icon->GetHeight());
+    if (inSize.x > 0.0f && inSize.y > 0.0f)
+    {
+        size.x = inSize.x;
+        size.y = inSize.y;
+    }
+
+    ImVec2 uv0  = ImVec2(0.0f,  0.0f);
+    ImVec2 uv1  = ImVec2(1.0f,  1.0f);
+    ImVec4 bgCol = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+    ImVec4 tintCol = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+    ImGui::PushID(name);
+    ImGui::Image(id, size, uv0, uv1, tintCol, bgCol);
+    ImGui::PopID();
+}
+
+bool Icons::DrawButton(IconName name, Vector2 inSize)
+{
+    GLTexture* icon = m_Icons[name];
+    ImTextureID id  = (ImTextureID)(intptr_t)icon->GetTexture();
+
+    ImVec2 size = ImVec2((float)icon->GetWidth(), (float)icon->GetHeight());
+    if (inSize.x > 0.0f && inSize.y > 0.0f)
+    {
+        size.x = inSize.x;
+        size.y = inSize.y;
+    }
+
+    ImVec2 uv0  = ImVec2(0.0f,  0.0f);
+    ImVec2 uv1  = ImVec2(1.0f,  1.0f);
+    ImVec4 bgCol = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+    ImVec4 tintCol = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+    ImGui::PushID(name);
+    bool result = ImGui::ImageButton(id, size, uv0, uv1, -1, bgCol, tintCol);
+    ImGui::PopID();
+
+    return result;
 }

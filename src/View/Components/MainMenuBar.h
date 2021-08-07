@@ -5,13 +5,15 @@
 #include "Math/Rectangle2D.h"
 #include "Math/Vector2.h"
 
+#include "Core/Scene.h"
+
 class UISceneView;
 
 class MainMenuBar
 {
 public:
 
-    MainMenuBar(UISceneView* uiview);
+    MainMenuBar(UISceneView* uiview, GLScenePtr scene);
 
     ~MainMenuBar();
 
@@ -27,6 +29,7 @@ public:
 private:
 
     UISceneView*    m_UIView;
+    GLScenePtr      m_Scene;
     bool            m_ShowingAbout;
 
     Vector2         m_MenuBarMousePos;

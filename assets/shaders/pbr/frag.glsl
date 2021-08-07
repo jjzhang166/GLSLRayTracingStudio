@@ -1,4 +1,4 @@
-#version 330
+#version 330 core
 
 precision highp float;
 precision highp int;
@@ -7,13 +7,13 @@ precision highp samplerCube;
 precision highp isampler2D;
 precision highp sampler2DArray;
 
-out vec4 outColor;
-
 in vec2 varyTexCoords;
+in vec3 varyNormals;
 
-uniform sampler2D mainTexture;
+out vec4 outColor;
 
 void main()
 {
-	outColor = texture(mainTexture, varyTexCoords);
+	vec3 normal = (varyNormals + vec3(1.0, 1.0f, 1.0)) * 0.5;
+	outColor = vec4(normal.x, normal.y, normal.z, 1.0);
 }

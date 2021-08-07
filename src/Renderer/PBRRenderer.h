@@ -1,6 +1,10 @@
 ﻿#pragma once
 
 #include "Base/Renderer.h"
+#include "Renderer/SkyBox.h"
+
+#include "Core/Shader.h"
+#include "Core/Program.h"
 
 #include <vector>
 
@@ -9,6 +13,9 @@ class PBRRenderer : public Renderer
 public:
 
     PBRRenderer()
+        : m_Scene(nullptr)
+        , m_PBRShader(nullptr)
+        , m_Skybox(nullptr)
     {
 
     }
@@ -35,5 +42,15 @@ public:
 
 private:
 
-    GLScenePtr  m_Scene;
+    void RenderSkybox();
+
+    void RenderOpaqueEntites();
+
+    void RenderBlendEntites();
+
+private:
+
+    GLScenePtr      m_Scene;
+    GLProgram*      m_PBRShader;
+    SkyBox*         m_Skybox;
 };

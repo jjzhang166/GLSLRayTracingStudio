@@ -9,6 +9,7 @@ class RayTracingRenderer : public Renderer
 public:
 
     RayTracingRenderer()
+        : m_Scene(nullptr)
     {
 
     }

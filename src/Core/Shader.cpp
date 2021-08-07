@@ -22,7 +22,7 @@ static std::string LoadIncludeShader(const std::string& path, std::string includ
 
     if (!file.is_open())
     {
-        LOGE("Could not open the shader : %s", path.c_str());
+        LOGE("Could not open the shader : %s\n", path.c_str());
         return fullSourceCode;
     }
 
@@ -62,7 +62,6 @@ GLShader::GLShader(const std::string& filePath, GLuint shaderType)
     std::string source = LoadShader(filePath);
 
     m_Object = glCreateShader(shaderType);
-    LOGI("Compiling Shader %s -> %d\n", filePath.c_str(), int32(m_Object));
 
     const GLchar *src = (const GLchar *)source.c_str();
     glShaderSource(m_Object, 1, &src, 0);
@@ -86,6 +85,15 @@ GLShader::GLShader(const std::string& filePath, GLuint shaderType)
         m_Object = 0;
         LOGE("Shader compilation error %s\n", msg.c_str());
         throw std::runtime_error(msg);
+    }
+}
+
+GLShader::~GLShader()
+{
+    if (m_Object != 0)
+    {
+        glDeleteShader(m_Object);
+        m_Object = 0;
     }
 }
 

@@ -35,10 +35,11 @@ void LoadHDRJob::DoThreadedWork()
 void LoadHDRJob::LoadHDRImage()
 {
     m_HDRImage = std::make_shared<HDRImage>();
-    float* pixels = stbi_loadf(m_Path.c_str(), &(m_HDRImage->width), &(m_HDRImage->height), &(m_HDRImage->component), STBI_rgb_alpha);
+    float* pixels = stbi_loadf(m_Path.c_str(), &(m_HDRImage->width), &(m_HDRImage->height), &(m_HDRImage->component), STBI_rgb);
+    m_HDRImage->component = 3;
 
-    m_HDRImage->hdrRGBA.resize(m_HDRImage->width * m_HDRImage->height * m_HDRImage->component);
-    memcpy(m_HDRImage->hdrRGBA.data(), pixels, m_HDRImage->hdrRGBA.size() * sizeof(float));
+    m_HDRImage->hdrRGB.resize(m_HDRImage->width * m_HDRImage->height * m_HDRImage->component);
+    memcpy(m_HDRImage->hdrRGB.data(), pixels, m_HDRImage->hdrRGB.size() * sizeof(float));
 
     stbi_image_free(pixels);
 }
@@ -74,9 +75,9 @@ void LoadHDRJob::CreateEnvImportanceTexture()
         for (int32 x = 0; x < width; ++x)
         {
             int32 idx = y * width + x;
-            float r   = m_HDRImage->hdrRGBA[idx * component + 0];
-            float g   = m_HDRImage->hdrRGBA[idx * component + 1];
-            float b   = m_HDRImage->hdrRGBA[idx * component + 2];
+            float r   = m_HDRImage->hdrRGB[idx * component + 0];
+            float g   = m_HDRImage->hdrRGB[idx * component + 1];
+            float b   = m_HDRImage->hdrRGB[idx * component + 2];
 
             total += Luminance(r, g, b);
             importanceData[idx] = area * MMath::Max3(r, g, b);
@@ -114,17 +115,17 @@ void LoadHDRJob::CreateEnvImportanceTexture()
 
     for (int32 i = 0; i < width * height; ++i)
     {
-        float r = m_HDRImage->hdrRGBA[i * component + 0];
-        float g = m_HDRImage->hdrRGBA[i * component + 1];
-        float b = m_HDRImage->hdrRGBA[i * component + 2];
+        float r = m_HDRImage->hdrRGB[i * component + 0];
+        float g = m_HDRImage->hdrRGB[i * component + 1];
+        float b = m_HDRImage->hdrRGB[i * component + 2];
         envAccel[i].pdf = MMath::Max3(r, g, b) * 1.0f / integral;
     }
 
-    m_HDRImage->envRGBA.resize(envAccel.size() * 3);
+    m_HDRImage->envRGB.resize(envAccel.size() * 3);
     for (size_t i = 0; i < envAccel.size(); ++i)
     {
-        m_HDRImage->envRGBA.push_back((float)envAccel[i].alias);
-        m_HDRImage->envRGBA.push_back((float)envAccel[i].q);
-        m_HDRImage->envRGBA.push_back((float)envAccel[i].pdf);
+        m_HDRImage->envRGB.push_back((float)envAccel[i].alias);
+        m_HDRImage->envRGB.push_back((float)envAccel[i].q);
+        m_HDRImage->envRGB.push_back((float)envAccel[i].pdf);
     }
 }

@@ -22,7 +22,9 @@ UISceneView::UISceneView(std::shared_ptr<GLWindow> window, std::shared_ptr<GLSce
     , m_PanelPropertyWidth(300.0f)
     , m_PanelAssetsWidth(200.0f)
 
-    , m_MainMenuBar(this)
+    , m_MainMenuBar(this, scene)
+    , m_ProjectPanel(this, scene)
+    , m_PropertyPanel(this, scene)
 {
 
 }
@@ -52,10 +54,25 @@ bool UISceneView::Init()
     io.ConfigWindowsResizeFromEdges = false;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
-    io.IniFilename = "../imgui.ini"; 
-    io.LogFilename = "../imgui.log";
-    
-    ImGui::StyleColorsDark();
+
+    {
+        static std::string iniPath = GetRootPath() + "imgui.ini";
+        static std::string logPath = GetRootPath() + "imgui.log";
+        io.IniFilename = iniPath.c_str(); 
+        io.LogFilename = logPath.c_str();
+    }
+
+    // style
+    {
+        ImGui::StyleColorsDark();
+        ImGuiStyle& style = ImGui::GetStyle();
+        style.ChildBorderSize  = 0.0f;
+        style.WindowBorderSize = 0.0f;
+        style.TabRounding      = 0.0f;
+        style.Colors[ImGuiCol_Tab]        = ImVec4(0.314f, 0.314f, 0.314f, 1.0f);
+        style.Colors[ImGuiCol_TabHovered] = ImVec4(0.392f, 0.392f, 0.392f, 1.0f);
+        style.Colors[ImGuiCol_TabActive]  = ImVec4(0.588f, 0.588f, 0.588f, 1.0f);
+    }
 
     ImGui_ImplGlfw_InitForOpenGL(Window()->Window(), true);
     ImGui_ImplOpenGL3_Init("#version 130");
@@ -64,15 +81,20 @@ bool UISceneView::Init()
     float fontScale = WindowsMisc::GetDPI() / 96.0f;
     io.Fonts->AddFontFromFileTTF("../assets/fonts/Roboto-Light.ttf", 16.0f * fontScale);
 
+    // panel size
+    m_PanelProjectWidth  = (0.15f * Window()->Width());
+    m_PanelPropertyWidth = (0.15f * Window()->Width());
+    m_PanelAssetsWidth   = (0.20f * Window()->Height());
+
     // load icons
-    m_Icons.Load();
+    Icons::Init();
 
     return true;
 }
 
 void UISceneView::Destroy()
 {
-    m_Icons.Destroy();
+    Icons::Destroy();
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -84,15 +106,14 @@ void UISceneView::OnUpdate()
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
-
-    UpdatePanelRects();
 }
 
 void UISceneView::UpdatePanelRects()
 {
-    Rectangle2D menuBarRect = m_MainMenuBar.GetMenuBarRect();
+    Rectangle2D menuBarRect  = m_MainMenuBar.GetMenuBarRect();
+    Rectangle2D mainViewPort = Rectangle2D(0.0f, 0.0f, (float)Window()->Width(), (float)Window()->Height());
 
-    auto rect  = Rectangle2D(0, menuBarRect.h, ImGui::GetMainViewport()->WorkSize.x, ImGui::GetMainViewport()->WorkSize.y - menuBarRect.h);
+    auto rect  = Rectangle2D(0, menuBarRect.h, mainViewPort.w, mainViewPort.h - menuBarRect.h);
     auto space = ImGui::GetStyle().ItemSpacing;
 
     // project panel
@@ -112,11 +133,6 @@ void UISceneView::UpdatePanelRects()
     m_PanelScene3DRect.y = m_PanelAssetsSize.y;
     m_PanelScene3DRect.w = rect.w - m_PanelProjectSize.x - m_PanelPropertySize.x;
     m_PanelScene3DRect.h = m_PanelProjectSize.y;
-}
-
-void UISceneView::DrawPropertyPanel()
-{
-    ImGui::Text("Property");
 }
 
 void UISceneView::DrawMessageUI()
@@ -169,33 +185,30 @@ void UISceneView::DrawMessageUI()
 
 void UISceneView::DrawConsolePanel()
 {
-    static bool ShowAssetUI = true;
-
-    if (ImGui::Button("Assets"))
+    if (ImGui::BeginTabBar("Assets&Console", ImGuiTabBarFlags_None))
     {
-        ShowAssetUI = true;
-    }
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0.0f, 0.0f));
+        bool chooseAssets = ImGui::BeginTabItem("Assets");
+        ImGui::PopStyleVar(1);
 
-    ImGui::SameLine();
+        if (chooseAssets)
+        {
+            ImGui::Text("Assets");
+            ImGui::EndTabItem();
+        }
 
-    if (ImGui::Button("Console"))
-    {
-        ShowAssetUI = false;
-    }
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0.0f, 0.0f));
+        bool chooseConsole = ImGui::BeginTabItem("Console");
+        ImGui::PopStyleVar(1);
 
-    if (ShowAssetUI)
-    {
-        ImGui::Text("Assets");
-    }
-    else
-    {
-        Logger().Draw();
-    }
-}
+        if (chooseConsole)
+        {
+            Logger().Draw();
+            ImGui::EndTabItem();
+        }
 
-void UISceneView::DrawProjectPanel()
-{
-    ImGui::Text("Project");
+        ImGui::EndTabBar();
+    }
 }
 
 void UISceneView::OnRender()
@@ -229,11 +242,16 @@ void UISceneView::OnRender()
     // menu bar
     m_MainMenuBar.Draw();
 
+    // calc rect
+    UpdatePanelRects();
+
     // project panel
     {
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
         ImGui::BeginChild("Project", ImVec2(m_PanelProjectSize.x, m_PanelProjectSize.y), true);
-        DrawProjectPanel();
+        m_ProjectPanel.Draw();
         ImGui::EndChild();
+        ImGui::PopStyleColor();
     }
 
     // dummy scene 3d
@@ -246,9 +264,11 @@ void UISceneView::OnRender()
 
     // property panel
     {
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
         ImGui::BeginChild("Property", ImVec2(m_PanelPropertySize.x, m_PanelPropertySize.y), true);
-        DrawPropertyPanel();
+        m_PropertyPanel.Draw(m_ProjectPanel.SelectedID());
         ImGui::EndChild();
+        ImGui::PopStyleColor();
     }
 
     // assets panel
@@ -261,9 +281,13 @@ void UISceneView::OnRender()
         windowFlags |= ImGuiWindowFlags_NoScrollbar;
         ImGui::SetNextWindowPos(ImVec2(0, ImGui::GetMainViewport()->WorkSize.y - m_PanelAssetsWidth));
         ImGui::SetNextWindowSize(ImVec2(ImGui::GetMainViewport()->WorkSize.x, m_PanelAssetsWidth));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
         ImGui::Begin("Assets&Console", nullptr, windowFlags);
         DrawConsolePanel();
         ImGui::End();
+        ImGui::PopStyleVar(1);
+        ImGui::PopStyleColor();
     }
 
     // end main
@@ -277,20 +301,6 @@ void UISceneView::OnRender()
     }
 
     ImGui::ShowDemoWindow();
-
-    {
-        ImGui::PushID(0);
-        ImVec2 size = ImVec2(32.0f, 32.0f);
-        ImVec2 uv0  = ImVec2(0.0f,  0.0f);
-        ImVec2 uv1  = ImVec2(1.0f,  1.0f);
-        ImVec4 bgCol = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
-        ImVec4 tintCol = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-
-        ImGui::Image((ImTextureID)(intptr_t)m_Icons.GetIcon(IconName::ICON_CAMERA)->GetTexture(), size, uv0, uv1, tintCol, bgCol);
-
-        ImGui::PopID();
-        ImGui::SameLine();
-    }
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

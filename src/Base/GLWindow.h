@@ -19,7 +19,7 @@ public:
 
     GLWindow(int32 width, int32 height, const char* title);
 
-    ~GLWindow();
+    virtual ~GLWindow();
 
     bool Init();
 
