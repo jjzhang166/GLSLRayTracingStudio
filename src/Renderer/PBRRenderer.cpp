@@ -35,7 +35,9 @@ void PBRRenderer::Update()
 
 void PBRRenderer::RenderSkybox()
 {
-    m_Skybox->Draw(m_Scene->GetCamera(), m_Scene->IBLs()[0]);
+    const auto& ibls = m_Scene->IBLs();
+    const int32 idx  = m_Scene->GetIBLIndex();
+    m_Skybox->Draw(m_Scene->GetCamera(), ibls[idx]);
 }
 
 void PBRRenderer::RenderOpaqueEntites()

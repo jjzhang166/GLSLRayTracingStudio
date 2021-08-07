@@ -218,14 +218,14 @@ void PropertyPanel::DrawPropertyEnv()
         std::vector<const char*> names;
         for (size_t i = 0; i < ibls.size(); ++i)
         {
-            names.push_back(env->HDRImage()->name.c_str());
+            names.push_back(ibls[i]->HDRImage()->name.c_str());
         }
 
         // hdr list
         {
             ImGui::PropertyLabel("HDR");
             ImGui::SameLine();
-            ImGui::Combo("##EnvList", &idx, names.data(), (int32)names.size());
+            ImGui::Combo("##EnvList", &idx, names, (int32)names.size());
             m_Scene->SetIBLIndex(idx);
         }
 
@@ -265,7 +265,7 @@ void PropertyPanel::DrawPropertyEnv()
             const float controlWidth  = ImGui::GetWindowWidth() - imstyle.IndentSpacing;
 
             ImTextureID id = (ImTextureID)(intptr_t)env->HDRTexture();
-            ImVec2 size = ImVec2(controlWidth, controlWidth * 0.75f);
+            ImVec2 size = ImVec2(controlWidth, controlWidth * 0.5f);
             
             ImVec2 uv0  = ImVec2(0.0f,  0.0f);
             ImVec2 uv1  = ImVec2(1.0f,  1.0f);

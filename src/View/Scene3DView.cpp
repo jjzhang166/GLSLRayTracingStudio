@@ -30,7 +30,7 @@ bool Scene3DView::Init()
     m_RayRenderer->SetScene(m_Scene);
 
     // default hdr
-    LoadHDRJob hdrParser(GetRootPath() + "assets/env/output_skybox.hdr");
+    LoadHDRJob hdrParser(GetRootPath() + "assets/env/lightroom_14b.hdr");
     hdrParser.DoThreadedWork();
     m_Scene->AddHDR(hdrParser.GetHDRImage());
 
@@ -59,7 +59,7 @@ void Scene3DView::OnUpdate()
 
     if (!rect.Contains(mouse.x, mouse.y))
     {
-        camera->OnMousePos(Vector2(mouse.x, mouse.y), true);
+        camera->OnMousePos(Vector2(mouse.x, mouse.y));
         camera->OnRMouse(false);
 	    camera->OnMMouse(false);
 	    camera->OnMouseWheel(0.0f);
@@ -67,7 +67,7 @@ void Scene3DView::OnUpdate()
     }
     else
     {
-        camera->OnMousePos(Vector2(mouse.x, mouse.y), false);
+        camera->OnMousePos(Vector2(mouse.x, mouse.y));
         camera->OnRMouse(ImGui::IsMouseDown(1));
 	    camera->OnMMouse(ImGui::IsMouseDown(2));
 	    camera->OnMouseWheel(ImGui::GetIO().MouseWheel);

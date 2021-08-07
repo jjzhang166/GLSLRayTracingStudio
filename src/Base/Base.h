@@ -290,7 +290,7 @@ public:
 
     void Update(float delta);
 
-    void OnMousePos(const Vector2 mousePos, bool forceLast);
+    void OnMousePos(const Vector2 mousePos);
 
     void OnRMouse(bool down);
 
@@ -334,8 +334,8 @@ protected:
     bool                    m_RMouseDown = false;
     bool                    m_MMouseDown = false;
 
-    Vector2		            m_LastMouse;
-    Vector2                 m_CurrMouse;
+    Vector2		            m_LastMouse = Vector2(-1.0f, -1.0f);
+    Vector2                 m_CurrMouse = Vector2(-1.0f, -1.0f);
     float		            m_MouseWheel = 0.0f;
 
     float		            m_SpinX = 0.0f;

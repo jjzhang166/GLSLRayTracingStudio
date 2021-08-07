@@ -16,27 +16,27 @@ vec3 UVToXYZ(int face, vec2 uv)
 {
     if (face == 0)
     {
-        return vec3(-uv.x, uv.y, -1.0f); // xleft
+        return vec3(uv.x, uv.y, 1.0f); // xright
     }
 	else if (face == 1)
     {
-        return vec3(uv.x, uv.y, 1.0f); // xright
+        return vec3(-uv.x, uv.y, -1.0f); // xleft
     }
 	else if (face == 2)
     {
-        return vec3(-uv.y, -1.0f, uv.x); // ytop
+        return vec3(uv.y, -1.0f, -uv.x); // ytop
     }
 	else if (face == 3)
     {
-        return vec3(uv.y, 1.0f, uv.x); // tbottom
+        return vec3(-uv.y, 1.0f, -uv.x); // tbottom
     }
 	else if (face == 4)
 	{
-        return vec3(-1.0f, uv.y, uv.x); // zback
+        return vec3(1.0f, uv.y, -uv.x); // zfront
     }
 	else
     {
-        return vec3(1.0f, uv.y, -uv.x); // zfront
+        return vec3(-1.0f, uv.y, uv.x); // zback
     }
 }
 

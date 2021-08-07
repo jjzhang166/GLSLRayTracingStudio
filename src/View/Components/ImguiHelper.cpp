@@ -43,4 +43,9 @@ namespace ImGui
         ImGui::SameLine();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - Padding);
     }
+
+    bool Combo(const char* label, int32* currentItem, const std::vector<const char*>& items, int32 itemsCount, int32 heightInItems)
+    {
+        return ImGui::Combo(label, currentItem, [](void* data, int32 idx, const char** outText) { *outText = ((const std::vector<const char*>*)data)->at(idx); return true; }, (void*)&items, itemsCount, heightInItems);
+    }
 }
