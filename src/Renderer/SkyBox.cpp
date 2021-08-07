@@ -141,10 +141,10 @@ void SkyBox::Draw(CameraPtr camera, IBLSampler* ibl)
 
     m_Program->Active();
     m_Program->SetUniform4x4f("_MVP", mvp);
-    m_Program->SetUniform1f("_Exposure", 1.0f);
-    m_Program->SetUniform1f("_GammaValue", 2.2f);
-    m_Program->SetUniform1f("_EnvironmentLod", 0.0f);
-    m_Program->SetUniform1f("_EnvironmentIntensity", 1.0f);
+    m_Program->SetUniform1f("_Exposure", ibl->exposure);
+    m_Program->SetUniform1f("_GammaValue", ibl->gammaValue);
+    m_Program->SetUniform1f("_EnvironmentLod", ibl->environmentLod);
+    m_Program->SetUniform1f("_EnvironmentIntensity", ibl->environmentIntensity);
     m_Program->SetTexture("_GGXEnvSampler", GL_TEXTURE_CUBE_MAP, ibl->Background(), 0);
 
     glCullFace(GL_FRONT);

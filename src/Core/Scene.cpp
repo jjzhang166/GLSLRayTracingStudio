@@ -20,6 +20,7 @@ GLScene::~GLScene()
 
 bool GLScene::Init()
 {
+    m_IBLIndex = -1;
     m_SceneTextures = nullptr;
 
     // camera
@@ -55,6 +56,7 @@ void GLScene::Free(bool freeHDR)
 
     if (freeHDR)
     {
+        m_IBLIndex = -1;
         m_Hdrs.clear();
 
         for (int32 i = 0; i < m_IBLs.size(); ++i)
@@ -261,6 +263,11 @@ int32 GLScene::AddHDR(HDRImagePtr hdr)
     IBLSampler* sampler = new IBLSampler();
     sampler->Init(hdr);
     m_IBLs.push_back(sampler);
+
+    if (m_IBLIndex == -1)
+    {
+        m_IBLIndex = id;
+    }
 
     return id;
 }

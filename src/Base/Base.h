@@ -99,6 +99,7 @@ struct HDRImage
 {
     int32                   id;
 
+    std::string             name;
     int32                   width;
     int32                   height;
     int32                   component;

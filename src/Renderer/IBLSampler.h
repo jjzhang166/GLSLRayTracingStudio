@@ -12,7 +12,6 @@
 
 class IBLSampler
 {
-
 public:
 
     IBLSampler();
@@ -22,6 +21,16 @@ public:
     void Init(HDRImagePtr hdrImage);
 
     void Destroy();
+
+    FORCEINLINE HDRImagePtr HDRImage() const
+    {
+        return m_HDRImage;
+    }
+
+    FORCEINLINE GLuint HDRTexture() const
+    {
+        return m_InputTexture;
+    }
 
     FORCEINLINE GLuint Background() const
     {
@@ -70,6 +79,13 @@ public:
 
     void PanoramaToCubeMap();
 
+public:
+
+    float           exposure = 1.0f;
+    float           gammaValue = 2.0f;
+    float           environmentLod = 0.0f;
+    float           environmentIntensity = 1.0f;
+
 private:
 
     GLuint CreateCubemapTexture(bool withMipmaps, int32 size);
@@ -105,4 +121,6 @@ private:
     float           m_LodBias;
     int32           m_MipMapCount;
 
+    HDRImagePtr     m_HDRImage;
+    
 };

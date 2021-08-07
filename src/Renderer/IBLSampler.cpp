@@ -22,6 +22,7 @@ IBLSampler::IBLSampler()
     , m_SampleCount(128)
     , m_LodBias(0.0f)
     , m_MipMapCount(0)
+
 {
     m_MipMapCount = MMath::FloorToInt(MMath::Log2((float)m_SampleSize)) + 1;
 }
@@ -64,6 +65,8 @@ GLuint IBLSampler::CreateCubemapTexture(bool withMipmaps, int32 size)
 
 void IBLSampler::Destroy()
 {
+    m_HDRImage = nullptr;
+
     if (m_InputTexture != 0)
     {
         glDeleteTextures(1, &m_InputTexture);
@@ -127,6 +130,8 @@ void IBLSampler::Destroy()
 
 void IBLSampler::Init(HDRImagePtr hdrImage)
 {
+    m_HDRImage = hdrImage;
+
     // ibl shader
     {
         std::shared_ptr<GLShader> vertShader = std::make_shared<GLShader>(GetRootPath() + "assets/shaders/ibl/Fullscreen.vert", GL_VERTEX_SHADER);

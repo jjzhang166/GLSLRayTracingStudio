@@ -203,6 +203,85 @@ void PropertyPanel::DrawPropertyLight(LightPtr light)
     }
 }
 
+void PropertyPanel::DrawPropertyEnv()
+{
+    static bool envOpend = true;
+    ImGui::SetNextTreeNodeOpen(envOpend);
+    envOpend = ImGui::CollapsingHeader("Env");
+
+    if (envOpend)
+    {
+        auto& ibls = m_Scene->IBLs();
+        int32 idx  = m_Scene->GetIBLIndex();
+        auto& env  = ibls[idx];
+
+        std::vector<const char*> names;
+        for (size_t i = 0; i < ibls.size(); ++i)
+        {
+            names.push_back(env->HDRImage()->name.c_str());
+        }
+
+        // hdr list
+        {
+            ImGui::PropertyLabel("HDR");
+            ImGui::SameLine();
+            ImGui::Combo("##EnvList", &idx, names.data(), (int32)names.size());
+            m_Scene->SetIBLIndex(idx);
+        }
+
+        // exposure
+        {
+            ImGui::PropertyLabel("Exposure");
+            ImGui::SameLine();
+            ImGui::DragFloat("##EnvExposure", &(env->exposure), 0.05f, 0.05f, 10.0f);
+        }
+
+        // gammaValue
+        {
+            ImGui::PropertyLabel("Gamma");
+            ImGui::SameLine();
+            ImGui::DragFloat("##EnvGamma", &(env->gammaValue), 0.05f, 0.05f, 10.0f);
+        }
+
+        // environmentLod
+        {
+            ImGui::PropertyLabel("LOD");
+            ImGui::SameLine();
+            ImGui::DragFloat("##EnvLOD", &(env->environmentLod), 0.05f, 0.0f, (float)env->MipmapLevels());
+        }
+
+        // environmentIntensity
+        {
+            ImGui::PropertyLabel("Intensity");
+            ImGui::SameLine();
+            ImGui::DragFloat("##EnvIntensity", &(env->environmentIntensity), 0.05f, 0.05f, 10.0f);
+        }
+
+        // hdr image
+        {
+            const float currentIndent = ImGui::GetCursorPos().x;
+            const ImGuiStyle& imstyle = ImGui::GetStyle();
+            const ImGuiWindow* window = ImGui::GetCurrentWindow();
+            const float controlWidth  = ImGui::GetWindowWidth() - imstyle.IndentSpacing;
+
+            ImTextureID id = (ImTextureID)(intptr_t)env->HDRTexture();
+            ImVec2 size = ImVec2(controlWidth, controlWidth * 0.75f);
+            
+            ImVec2 uv0  = ImVec2(0.0f,  0.0f);
+            ImVec2 uv1  = ImVec2(1.0f,  1.0f);
+            ImVec4 bgCol = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+            ImVec4 tintCol = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+            ImGui::SetCursorPosX(imstyle.IndentSpacing * 0.5f);
+            ImGui::PushID(env->HDRImage()->name.c_str());
+            ImGui::Image(id, size, uv0, uv1, tintCol, bgCol);
+            ImGui::PopID();
+        }
+    }
+
+    
+}
+
 void PropertyPanel::DrawPropertyCamera(CameraPtr camera)
 {
     static bool cameraOpend = true;
@@ -353,6 +432,7 @@ void PropertyPanel::Draw(int32 instanceID)
     {
         DrawSceneSettings();
         DrawPropertyCamera(m_Scene->GetCamera());
+        DrawPropertyEnv();
         return;
     }
 

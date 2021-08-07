@@ -42,6 +42,8 @@ void LoadHDRJob::LoadHDRImage()
     memcpy(m_HDRImage->hdrRGB.data(), pixels, m_HDRImage->hdrRGB.size() * sizeof(float));
 
     stbi_image_free(pixels);
+
+    m_HDRImage->name = GetFileName(m_Path);
 }
 
 void LoadHDRJob::CreateEnvImportanceTexture()

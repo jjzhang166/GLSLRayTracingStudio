@@ -53,9 +53,19 @@ public:
         return m_Camera;
     }
 
-    FORCEINLINE const std::vector<IBLSampler*>& IBLs() const
+    FORCEINLINE std::vector<IBLSampler*>& IBLs()
     {
         return m_IBLs;
+    }
+
+    FORCEINLINE const int32 GetIBLIndex() const
+    {
+        return m_IBLIndex;
+    }
+
+    FORCEINLINE void SetIBLIndex(int32 index)
+    {
+        m_IBLIndex = index;
     }
 
     FORCEINLINE const Scene3DArray& GetScenes() const
@@ -178,6 +188,7 @@ protected:
     std::vector<GLuint>             m_VAOs;
     GLTexture*                      m_SceneTextures;
     std::vector<IBLSampler*>        m_IBLs;
+    int32                           m_IBLIndex;
 };
 
 typedef std::shared_ptr<GLScene> GLScenePtr;

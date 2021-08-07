@@ -25,6 +25,8 @@ private:
 
     void DrawPropertyCamera(CameraPtr camera);
 
+    void DrawPropertyEnv();
+
     void DrawPropertyLight(LightPtr light);
 
     void DrawPropertyMesh(const MeshArray& meshes);
