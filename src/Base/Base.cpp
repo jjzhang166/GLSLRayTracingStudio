@@ -123,9 +123,14 @@ void Camera::GetGizmoViewProjection(float* view, float* projection)
     GizmoPerspective(MMath::RadiansToDegrees(fov), ratio, m_Near, m_Far, projection);
 }
 
-void Camera::OnMousePos(const Vector2 mousePos)
+void Camera::OnMousePos(const Vector2 mousePos, bool forceLast)
 {
-    m_CurrMouse  = mousePos;
+    m_CurrMouse = mousePos;
+
+    if (forceLast)
+    {
+        m_LastMouse = mousePos;
+    }
 }
 
 void Camera::OnRMouse(bool down)

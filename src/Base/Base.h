@@ -290,7 +290,7 @@ public:
 
     void Update(float delta);
 
-    void OnMousePos(const Vector2 mousePos);
+    void OnMousePos(const Vector2 mousePos, bool forceLast);
 
     void OnRMouse(bool down);
 

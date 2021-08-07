@@ -59,7 +59,7 @@ void Scene3DView::OnUpdate()
 
     if (!rect.Contains(mouse.x, mouse.y))
     {
-        camera->OnMousePos(Vector2(mouse.x, mouse.y));
+        camera->OnMousePos(Vector2(mouse.x, mouse.y), true);
         camera->OnRMouse(false);
 	    camera->OnMMouse(false);
 	    camera->OnMouseWheel(0.0f);
@@ -67,7 +67,7 @@ void Scene3DView::OnUpdate()
     }
     else
     {
-        camera->OnMousePos(Vector2(mouse.x, mouse.y));
+        camera->OnMousePos(Vector2(mouse.x, mouse.y), false);
         camera->OnRMouse(ImGui::IsMouseDown(1));
 	    camera->OnMMouse(ImGui::IsMouseDown(2));
 	    camera->OnMouseWheel(ImGui::GetIO().MouseWheel);
