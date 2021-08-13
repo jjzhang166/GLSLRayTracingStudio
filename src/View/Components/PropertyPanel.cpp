@@ -247,7 +247,7 @@ void PropertyPanel::DrawPropertyEnv()
         {
             ImGui::PropertyLabel("LOD");
             ImGui::SameLine();
-            ImGui::DragFloat("##EnvLOD", &(env->environmentLod), 0.05f, 0.0f, (float)env->MipmapLevels());
+            ImGui::DragFloat("##EnvLOD", &(env->environmentLod), 0.05f, 0.0f, (float)env->MipmapLevels() - 1.0f);
         }
 
         // environmentIntensity

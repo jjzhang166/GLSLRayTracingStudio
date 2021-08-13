@@ -3,28 +3,34 @@
 #include "Math/Math.h"
 
 IBLSampler::IBLSampler()
-    : m_VertexBuffer(nullptr)
-    , m_IndexBuffer(nullptr)
-
-    , m_InputTexture(0)
+    : m_InputTexture(0)
     , m_CubeTexture(0)
-    , m_LambertTexture(0)
+
+    , m_LambertianTexture(0)
     , m_GGXTexture(0)
     , m_SheenTexture(0)
-    , m_FrameBuffer(0)
 
-    , m_VAO(0)
+    , m_GGXLutTexture(0)
+    , m_CharlieLutTexture(0)
+
+    , m_FrameBuffer(0)
 
     , m_ProgramIBL(nullptr)
     , m_ProgramCube(nullptr)
+    , m_Quad(nullptr)
 
-    , m_SampleSize(512)
-    , m_SampleCount(128)
+    , m_TextureSize(256)
+    , m_GGXSampleCount(1024)
+    , m_LambertianSampleCount(2048)
+    , m_SheenSamplCount(64)
+
     , m_LodBias(0.0f)
+    , m_LutResolution(1024)
+    , m_LowestMipLevel(4)
     , m_MipMapCount(0)
 
 {
-    m_MipMapCount = MMath::FloorToInt(MMath::Log2((float)m_SampleSize)) + 1;
+
 }
 
 IBLSampler::~IBLSampler()
@@ -32,7 +38,7 @@ IBLSampler::~IBLSampler()
     
 }
 
-GLuint IBLSampler::CreateCubemapTexture(bool withMipmaps, int32 size)
+GLuint IBLSampler::CreateCubemapTexture(bool withMipmaps)
 {
     GLuint texture;
     glGenTextures(1, &texture);
@@ -40,12 +46,11 @@ GLuint IBLSampler::CreateCubemapTexture(bool withMipmaps, int32 size)
 
     for (int32 i = 0; i < 6; ++i)
     {
-        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB32F, size, size, 0, GL_RGB, GL_FLOAT, nullptr);
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA32F, m_TextureSize, m_TextureSize, 0, GL_RGBA, GL_FLOAT, nullptr);
     }
 
     if (withMipmaps)
     {
-        glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     }
     else
@@ -56,7 +61,6 @@ GLuint IBLSampler::CreateCubemapTexture(bool withMipmaps, int32 size)
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S,     GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T,     GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R,     GL_CLAMP_TO_EDGE);
 
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 
@@ -79,10 +83,10 @@ void IBLSampler::Destroy()
         m_CubeTexture = 0;
     }
 
-    if (m_LambertTexture != 0)
+    if (m_LambertianTexture != 0)
     {
-        glDeleteTextures(1, &m_LambertTexture);
-        m_LambertTexture = 0;
+        glDeleteTextures(1, &m_LambertianTexture);
+        m_LambertianTexture = 0;
     }
 
     if (m_GGXTexture != 0)
@@ -95,6 +99,18 @@ void IBLSampler::Destroy()
     {
         glDeleteTextures(1, &m_SheenTexture);
         m_SheenTexture = 0;
+    }
+
+    if (m_GGXLutTexture != 0)
+    {
+        glDeleteTextures(1, &m_GGXLutTexture);
+        m_GGXLutTexture = 0;
+    }
+
+    if (m_CharlieLutTexture != 0)
+    {
+        glDeleteTextures(1, &m_CharlieLutTexture);
+        m_CharlieLutTexture = 0;
     }
 
     if (m_FrameBuffer != 0)
@@ -115,16 +131,10 @@ void IBLSampler::Destroy()
         m_ProgramCube = nullptr;
     }
 
-    if (m_VertexBuffer != nullptr)
+    if (m_Quad != nullptr)
     {
-        delete m_VertexBuffer;
-        m_VertexBuffer = nullptr;
-    }
-
-    if (m_IndexBuffer != nullptr)
-    {
-        delete m_IndexBuffer;
-        m_IndexBuffer = nullptr;
+        delete m_Quad;
+        m_Quad = nullptr;
     }
 }
 
@@ -152,6 +162,11 @@ void IBLSampler::Init(HDRImagePtr hdrImage)
         m_ProgramCube = new GLProgram(shaders);
     }
 
+    // fullscreen
+    {
+        m_Quad = new Quad();
+    }
+
     // hdr texture
     {
         glGenTextures(1, &m_InputTexture);
@@ -171,40 +186,20 @@ void IBLSampler::Init(HDRImagePtr hdrImage)
 
     // ibl textures
     {
-        m_CubeTexture    = CreateCubemapTexture(true, m_SampleSize);
-        m_LambertTexture = CreateCubemapTexture(false, m_SampleSize);
-        m_GGXTexture     = CreateCubemapTexture(true, m_SampleSize);
-        m_SheenTexture   = CreateCubemapTexture(true, m_SampleSize);
-    }
+        m_CubeTexture       = CreateCubemapTexture(true);
+        m_LambertianTexture = CreateCubemapTexture(false);
+        m_GGXTexture        = CreateCubemapTexture(true);
+        m_SheenTexture      = CreateCubemapTexture(true);
 
-    // quad buffer
-    {
-        float vertices[] =
-        {
-            -1.0f,  1.0f,  0.0f,  0.0f,  1.0f,
-             1.0f,  1.0f,  0.0f,  1.0f,  1.0f,
-             1.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-            -1.0f, -1.0f,  0.0f,  0.0f,  0.0f
-        };
-        m_VertexBuffer = new VertexBuffer();
-        m_VertexBuffer->Upload((uint8*)(&vertices[0]), sizeof(vertices));
+        glBindTexture(GL_TEXTURE_CUBE_MAP, m_GGXTexture);
+        glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 
-        uint32 indices[] =
-        {
-            0, 1, 2, 0, 2, 3
-        };
-        m_IndexBuffer = new IndexBuffer();
-        m_IndexBuffer->Upload((uint8*)(&indices[0]), sizeof(indices));
+        glBindTexture(GL_TEXTURE_CUBE_MAP, m_SheenTexture);
+        glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 
-        glGenVertexArrays(1, &m_VAO);
-        glBindVertexArray(m_VAO);
-        glBindBuffer(m_VertexBuffer->Target(), m_VertexBuffer->Object());
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (GLvoid*)0);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (GLvoid*)12);
-        glEnableVertexAttribArray(1);
-        glBindVertexArray(0);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
+        m_MipMapCount = MMath::FloorToInt(MMath::Log2((float)m_TextureSize)) + 1 - m_LowestMipLevel;
     }
 
     // process
@@ -217,46 +212,35 @@ void IBLSampler::Init(HDRImagePtr hdrImage)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void IBLSampler::Draw()
-{
-    glBindVertexArray(m_VAO);
-    glBindBuffer(m_IndexBuffer->Target(), m_IndexBuffer->Object());
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-    glBindVertexArray(0);
-    glBindBuffer(m_IndexBuffer->Target(), 0);
-}
-
 void IBLSampler::PanoramaToCubeMap()
 {
-    m_ProgramCube->Active();
-
     for (int32 i = 0; i < 6; ++i)
     {
         glBindFramebuffer(GL_FRAMEBUFFER, m_FrameBuffer);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_CubeTexture, 0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, m_CubeTexture);
         
-        glViewport(0, 0, m_SampleSize, m_SampleSize);
+        glViewport(0, 0, m_TextureSize, m_TextureSize);
+        glScissor(0, 0, m_TextureSize, m_TextureSize);
         glClearColor(0.0, 0.0, 0.0, 1.0);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        m_ProgramCube->Active();
         m_ProgramCube->SetUniform1i("_CurrentFace", i);
-        m_ProgramCube->SetTexture("_Panorama", GL_TEXTURE_2D, m_InputTexture, 0);
+        m_ProgramCube->SetTexture("_InputTexture", GL_TEXTURE_2D, m_InputTexture, 0);
 
-        Draw();
+        m_Quad->Draw();
+
+        m_ProgramCube->Deactive();
     }
-
-    m_ProgramCube->Deactive();
 
     glBindTexture(GL_TEXTURE_CUBE_MAP, m_CubeTexture);
     glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
-
-    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void IBLSampler::CubeMapToLambertian()
 {
-    ApplyFilter(0, 0.0f, 0, m_LambertTexture);
+    ApplyFilter(0, 0.0f, 0, m_LambertianTexture, m_LambertianSampleCount);
 }
 
 void IBLSampler::CubeMapToGGX()
@@ -264,7 +248,7 @@ void IBLSampler::CubeMapToGGX()
     for (int32 currentMipLevel = 0; currentMipLevel < m_MipMapCount; ++currentMipLevel)
     {
         float roughness = currentMipLevel * 1.0f / (m_MipMapCount - 1);
-        ApplyFilter(1, roughness, currentMipLevel, m_GGXTexture);
+        ApplyFilter(1, roughness, currentMipLevel, m_GGXTexture, m_GGXSampleCount);
     }
 }
 
@@ -273,35 +257,37 @@ void IBLSampler::CubeMapToSheen()
     for (int32 currentMipLevel = 0; currentMipLevel < m_MipMapCount; ++currentMipLevel)
     {
         float roughness = currentMipLevel * 1.0f / (m_MipMapCount - 1);
-        ApplyFilter(2, roughness, currentMipLevel, m_SheenTexture);
+        ApplyFilter(2, roughness, currentMipLevel, m_SheenTexture, m_SheenSamplCount);
     }
 }
 
-void IBLSampler::ApplyFilter(int32 distribution, float roughness, int32 targetMipLevel, GLuint targetTexture)
+void IBLSampler::ApplyFilter(int32 distribution, float roughness, int32 targetMipLevel, GLuint targetTexture, int32 sampleCount)
 {
-    int32 currentTextureSize = m_SampleSize >> targetMipLevel;
-
-    m_ProgramIBL->Active();
+    int32 currentTextureSize = m_TextureSize >> targetMipLevel;
 
     for (int32 i = 0; i < 6; ++i)
     {
         glBindFramebuffer(GL_FRAMEBUFFER, m_FrameBuffer);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, targetTexture, targetMipLevel);
         glBindTexture(GL_TEXTURE_CUBE_MAP, targetTexture);
-        glViewport(0, 0, currentTextureSize, currentTextureSize);
-        glClearColor(1.0, 0.0, 0.0, 0.0);
-        glClear(GL_COLOR_BUFFER_BIT);
 
-        m_ProgramIBL->SetTexture("_CubeMap", GL_TEXTURE_CUBE_MAP, m_CubeTexture, 0);
+        glViewport(0, 0, currentTextureSize, currentTextureSize);
+        glScissor(0, 0, currentTextureSize, currentTextureSize);
+        glClearColor(0.0, 0.0, 0.0, 1.0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        m_ProgramIBL->Active();
+        m_ProgramIBL->SetTexture("_InputCubeMap", GL_TEXTURE_CUBE_MAP, m_CubeTexture, 0);
         m_ProgramIBL->SetUniform1f("_Roughness", roughness);
-        m_ProgramIBL->SetUniform1i("_SampleCount", m_SampleCount);
-        m_ProgramIBL->SetUniform1i("_Width", m_SampleSize);
+        m_ProgramIBL->SetUniform1i("_SampleCount", sampleCount);
+        m_ProgramIBL->SetUniform1i("_Width", m_TextureSize);
         m_ProgramIBL->SetUniform1f("_LodBias", m_LodBias);
         m_ProgramIBL->SetUniform1i("_Distribution", distribution);
         m_ProgramIBL->SetUniform1i("_CurrentFace", i);
+        m_ProgramIBL->SetUniform1i("_GeneratingLUT", 0);
 
-        Draw();
+        m_Quad->Draw();
+
+        m_ProgramIBL->Deactive();
     }
-
-    m_ProgramIBL->Deactive();
 }

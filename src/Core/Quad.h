@@ -12,7 +12,7 @@ public:
 
     virtual ~Quad();
 
-    void Draw(GLProgram* program);
+    void Draw();
 
 private:
 

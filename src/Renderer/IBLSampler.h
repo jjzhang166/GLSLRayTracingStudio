@@ -5,6 +5,7 @@
 #include "Base/Base.h"
 #include "Base/Buffer.h"
 
+#include "Core/Quad.h"
 #include "Core/Program.h"
 #include "Core/Texture.h"
 
@@ -39,7 +40,7 @@ public:
 
     FORCEINLINE GLuint LambertTexture() const
     {
-        return m_LambertTexture;
+        return m_LambertianTexture;
     }
 
     FORCEINLINE GLuint GGXTexture() const
@@ -67,18 +68,6 @@ public:
         return m_LodBias;
     }
 
-    FORCEINLINE int32 SampleCount() const
-    {
-        return m_SampleCount;
-    }
-
-    FORCEINLINE int32 SampleSize() const
-    {
-        return m_SampleSize;
-    }
-
-    void PanoramaToCubeMap();
-
 public:
 
     float           exposure = 1.0f;
@@ -88,37 +77,43 @@ public:
 
 private:
 
-    GLuint CreateCubemapTexture(bool withMipmaps, int32 size);
+    GLuint CreateCubemapTexture(bool withMipmaps);
 
     void CubeMapToLambertian();
+
+    void PanoramaToCubeMap();
 
     void CubeMapToGGX();
 
     void CubeMapToSheen();
 
-    void Draw();
-
-    void ApplyFilter(int32 distribution, float roughness, int32 targetMipLevel, GLuint targetTexture);
+    void ApplyFilter(int32 distribution, float roughness, int32 targetMipLevel, GLuint targetTexture, int32 sampleCount);
 
 private:
 
-    VertexBuffer*   m_VertexBuffer;
-    IndexBuffer*    m_IndexBuffer;
-
     GLuint          m_InputTexture;
     GLuint          m_CubeTexture;
-    GLuint          m_LambertTexture;
+
+    GLuint          m_LambertianTexture;
     GLuint          m_GGXTexture;
     GLuint          m_SheenTexture;
+
+    GLuint          m_GGXLutTexture;
+    GLuint          m_CharlieLutTexture;
+
     GLuint          m_FrameBuffer;
-    GLuint          m_VAO;
 
     GLProgram*      m_ProgramIBL;
     GLProgram*      m_ProgramCube;
+    Quad*           m_Quad;
 
-    int32           m_SampleSize;
-    int32           m_SampleCount;
+    int32           m_TextureSize;
+    int32           m_GGXSampleCount;
+    int32           m_LambertianSampleCount;
+    int32           m_SheenSamplCount;
     float           m_LodBias;
+    int32           m_LutResolution;
+    int32           m_LowestMipLevel;
     int32           m_MipMapCount;
 
     HDRImagePtr     m_HDRImage;

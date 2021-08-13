@@ -36,11 +36,9 @@ Quad::~Quad()
     glDeleteVertexArrays(1, &m_Vao);
 }
 
-void Quad::Draw(GLProgram* program)
+void Quad::Draw()
 {
-    program->Active();
     glBindVertexArray(m_Vao);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
-    program->Deactive();
 }
